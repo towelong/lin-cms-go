@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	dto "github.com/towelong/lin-cms-go/internal/domain/dto"
 	model "github.com/towelong/lin-cms-go/internal/domain/model"
 	vo "github.com/towelong/lin-cms-go/internal/domain/vo"
 )
@@ -33,6 +34,62 @@ func NewMockIUserService(ctrl *gomock.Controller) *MockIUserService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIUserService) EXPECT() *MockIUserServiceMockRecorder {
 	return m.recorder
+}
+
+// ChangeUserPassword mocks base method.
+func (m *MockIUserService) ChangeUserPassword(arg0 int, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeUserPassword", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeUserPassword indicates an expected call of ChangeUserPassword.
+func (mr *MockIUserServiceMockRecorder) ChangeUserPassword(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeUserPassword", reflect.TypeOf((*MockIUserService)(nil).ChangeUserPassword), arg0, arg1)
+}
+
+// CreateUser mocks base method.
+func (m *MockIUserService) CreateUser(arg0 dto.RegisterDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockIUserServiceMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockIUserService)(nil).CreateUser), arg0)
+}
+
+// CreateUsernamePasswordIdentity mocks base method.
+func (m *MockIUserService) CreateUsernamePasswordIdentity(arg0 int, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUsernamePasswordIdentity", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateUsernamePasswordIdentity indicates an expected call of CreateUsernamePasswordIdentity.
+func (mr *MockIUserServiceMockRecorder) CreateUsernamePasswordIdentity(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUsernamePasswordIdentity", reflect.TypeOf((*MockIUserService)(nil).CreateUsernamePasswordIdentity), arg0, arg1, arg2)
+}
+
+// DeleteUser mocks base method.
+func (m *MockIUserService) DeleteUser(arg0 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockIUserServiceMockRecorder) DeleteUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockIUserService)(nil).DeleteUser), arg0)
 }
 
 // GetRootUserId mocks base method.
@@ -62,6 +119,21 @@ func (m *MockIUserService) GetUserById(arg0 int) (model.User, error) {
 func (mr *MockIUserServiceMockRecorder) GetUserById(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserById", reflect.TypeOf((*MockIUserService)(nil).GetUserById), arg0)
+}
+
+// GetUserByUsername mocks base method.
+func (m *MockIUserService) GetUserByUsername(arg0 string) (model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByUsername", arg0)
+	ret0, _ := ret[0].(model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByUsername indicates an expected call of GetUserByUsername.
+func (mr *MockIUserServiceMockRecorder) GetUserByUsername(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsername", reflect.TypeOf((*MockIUserService)(nil).GetUserByUsername), arg0)
 }
 
 // GetUserPageByGroupId mocks base method.

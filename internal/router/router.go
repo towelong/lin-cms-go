@@ -5,6 +5,8 @@ import (
 	"github.com/google/wire"
 	"github.com/towelong/lin-cms-go/api/app/cms"
 	v1 "github.com/towelong/lin-cms-go/api/app/v1"
+	"github.com/towelong/lin-cms-go/pkg/response"
+	"net/http"
 )
 
 var _ IRouter = (*Router)(nil)
@@ -25,6 +27,15 @@ type Router struct {
 }
 
 func (r *Router) RegisterAPI(app *gin.Engine) {
+
+	app.NoMethod(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, response.UnifyResponse(10080, ctx))
+	})
+
+	app.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, response.UnifyResponse(10025, ctx))
+	})
+
 	cmsGroup := app.Group("/cms")
 	{
 		r.UserAPI.RegisterServer(cmsGroup)

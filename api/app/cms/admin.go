@@ -8,6 +8,7 @@ import (
 	"github.com/towelong/lin-cms-go/pkg/response"
 	"github.com/towelong/lin-cms-go/pkg/router"
 	"net/http"
+	"strconv"
 )
 
 type AdminAPI struct {
@@ -39,6 +40,41 @@ func (admin *AdminAPI) GetUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userPage)
 }
 
+func (admin *AdminAPI) ChangeUserPassword(ctx *gin.Context) {
+	var password dto.ResetPasswordDTO
+	param := ctx.Param("id")
+	id, _ := strconv.Atoi(param)
+	if id <= 0 {
+		ctx.Error(response.ParmeterInvalid(ctx, 10030, "用户编号必须是正整数"))
+		return
+	}
+	if err := ctx.ShouldBindJSON(&password); err != nil {
+		ctx.Error(err)
+		return
+	}
+	err := admin.UserService.ChangeUserPassword(id, password.NewPassword)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	response.UpdatedVO(ctx)
+}
+
+func (admin *AdminAPI) DeleteUser(ctx *gin.Context) {
+	param := ctx.Param("id")
+	id, _ := strconv.Atoi(param)
+	if id <= 0 {
+		ctx.Error(response.ParmeterInvalid(ctx, 10030, "用户编号必须是正整数"))
+		return
+	}
+	err := admin.UserService.DeleteUser(id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	response.DeletedVO(ctx)
+}
+
 func (admin *AdminAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 	adminRouter := router.NewLinRouter("/admin", "管理员", routerGroup)
 	adminRouter.LinGET(
@@ -52,7 +88,21 @@ func (admin *AdminAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 		"GetUsers",
 		"/users",
 		adminRouter.Permission("查询所有用户", true),
-		admin.Auth.GroupRequired,
+		admin.Auth.AdminRequired,
 		admin.GetUsers,
+	)
+	adminRouter.LinPUT(
+		"ChangeUserPassword",
+		"/user/:id/password",
+		adminRouter.Permission("修改用户密码", true),
+		admin.Auth.AdminRequired,
+		admin.ChangeUserPassword,
+	)
+	adminRouter.LinDELETE(
+		"DeleteUser",
+		"/user/:id",
+		adminRouter.Permission("删除用户", true),
+		admin.Auth.AdminRequired,
+		admin.DeleteUser,
 	)
 }

@@ -2,16 +2,18 @@ package service
 
 import (
 	"github.com/towelong/lin-cms-go/internal/domain/model"
+	"github.com/towelong/lin-cms-go/pkg/response"
 	"github.com/towelong/lin-cms-go/pkg/router"
 	"gorm.io/gorm"
 )
-
-
 
 type IGroupService interface {
 	GetGroupByLevel(level int) (group *model.Group, err error)
 	GetUserHasPermission(useId int, meta router.Meta) bool
 	GetUserGroupByUserId(userId int) ([]model.Group, error)
+	CheckGroupsValid(ids []int) error
+	CheckGroupsExist(ids []int) error
+	CheckGroupExistById(id int) error
 }
 
 type GroupService struct {
@@ -19,7 +21,7 @@ type GroupService struct {
 }
 
 func (g *GroupService) GetGroupByLevel(level int) (group *model.Group, err error) {
-	res := g.DB.Where("level = ? AND delete_time is null", level).First(&group)
+	res := g.DB.Where("level = ?", level).First(&group)
 	err = res.Error
 	if err != nil {
 		return nil, err
@@ -49,7 +51,7 @@ func (g *GroupService) GetUserHasPermission(useId int, meta router.Meta) bool {
 	for _, groupPermission := range groupPermissions {
 		permissionIds = append(permissionIds, groupPermission.PermissionID)
 	}
-	db = g.DB.Where("delete_time is null AND name = ? AND mount = ? AND module = ? AND id IN ?", meta.Permission, bool2Int(meta.Mount), meta.Module, permissionIds).First(&permission)
+	db = g.DB.Where("name = ? AND mount = ? AND module = ? AND id IN ?", meta.Permission, bool2Int(meta.Mount), meta.Module, permissionIds).First(&permission)
 	return db.Error == nil
 }
 
@@ -74,4 +76,29 @@ func (g *GroupService) GetUserGroupByUserId(userId int) ([]model.Group, error) {
 		return nil, err
 	}
 	return groups, nil
+}
+
+func (g *GroupService) CheckGroupExistById(id int) error {
+	var group model.Group
+	return g.DB.First(&group, id).Error
+}
+
+func (g *GroupService) CheckGroupsValid(ids []int) error {
+	group, _ := g.GetGroupByLevel(Root)
+	for _, id := range ids {
+		if id == group.ID {
+			return response.NewResponse(10073)
+		}
+	}
+	return nil
+}
+
+func (g *GroupService) CheckGroupsExist(ids []int) error {
+	for _, id := range ids {
+		err := g.CheckGroupExistById(id)
+		if err != nil {
+			return response.NewResponse(10023)
+		}
+	}
+	return nil
 }

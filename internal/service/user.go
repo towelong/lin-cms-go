@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jianfengye/collection"
 	"github.com/jinzhu/copier"
+	"github.com/towelong/lin-cms-go/internal/domain/dto"
 	"github.com/towelong/lin-cms-go/internal/domain/model"
 	"github.com/towelong/lin-cms-go/internal/domain/vo"
 	"github.com/towelong/lin-cms-go/pkg"
@@ -13,10 +14,15 @@ import (
 
 type IUserService interface {
 	GetUserById(id int) (model.User, error)
+	GetUserByUsername(username string) (model.User, error)
 	GetUserPageByGroupId(groupId int, page int, count int) (*vo.Page, error)
 	IsAdmin(id int) (bool, error)
 	VerifyUser(username, password string) (model.User, error)
 	GetRootUserId() int
+	ChangeUserPassword(id int, newPassword string) error
+	DeleteUser(id int) error
+	CreateUser(dto dto.RegisterDTO) error
+	CreateUsernamePasswordIdentity(userId int, username, password string) error
 }
 
 type UserService struct {
@@ -29,7 +35,7 @@ func (u UserService) GetRootUserId() int {
 		group     model.Group
 		userGroup model.UserGroup
 	)
-	err := u.DB.Where("delete_time is null AND level = ?", Root).First(&group).Error
+	err := u.DB.Where("level = ?", Root).First(&group).Error
 	if err != nil {
 		return 0
 	}
@@ -63,6 +69,13 @@ func (u UserService) GetUserPageByGroupId(groupId int, page int, count int) (*vo
 	if err != nil {
 		fmt.Println(err)
 	}
+	// 若非root用户数量为0，直接返回
+	if len(userIds) == 0 {
+		p.SetTotal(0)
+		users = make([]model.User, 0)
+		p.SetItems(users)
+		return p, nil
+	}
 	db := u.DB.Limit(count).Offset(page*count).Find(&users, userIds)
 	if db.Error != nil {
 		return p, err
@@ -90,11 +103,23 @@ func (u UserService) GetUserPageByGroupId(groupId int, page int, count int) (*vo
 
 func (u UserService) GetUserById(id int) (model.User, error) {
 	var user model.User
-	res := u.DB.First(&user, "id = ? AND delete_time is null", id)
+	res := u.DB.First(&user, "id = ?", id)
 	if res.RowsAffected > 0 {
 		return user, nil
 	}
 	return user, res.Error
+}
+
+func (u UserService) GetUserByUsername(username string) (model.User, error) {
+	var user model.User
+	err := u.DB.Where("username = ?", username).First(&user).Error
+	return user, err
+}
+
+func (u UserService) GetUserByEmail(email string) (model.User, error) {
+	var user model.User
+	err := u.DB.Where("email = ?", email).First(&user).Error
+	return user, err
 }
 
 func (u UserService) IsAdmin(id int) (bool, error) {
@@ -122,7 +147,7 @@ func (u UserService) VerifyUser(username, password string) (model.User, error) {
 		userIdentity model.UserIdentity
 		user         model.User
 	)
-	db := u.DB.Where("delete_time is null AND identity_type = ? AND identifier = ?", UserPassword.String(), username).First(&userIdentity)
+	db := u.DB.Where("identity_type = ? AND identifier = ?", UserPassword.String(), username).First(&userIdentity)
 	if db.Error != nil {
 		return user, response.NewResponse(10031)
 	}
@@ -135,4 +160,108 @@ func (u UserService) VerifyUser(username, password string) (model.User, error) {
 		return user, nil
 	}
 	return user, response.NewResponse(10032)
+}
+
+func (u UserService) ChangeUserPassword(id int, newPassword string) error {
+	user, err := u.GetUserById(id)
+	if err != nil {
+		return response.NewResponse(10021)
+	}
+	var userIdentity model.UserIdentity
+	db := u.DB.Where("user_id = ?", user.ID).First(&userIdentity)
+	password := pkg.EncodePassword(newPassword)
+	save := db.Debug().Model(&userIdentity).Update("credential", password)
+	return save.Error
+}
+
+func (u UserService) DeleteUser(id int) error {
+	user, err := u.GetUserById(id)
+	if err != nil {
+		return response.NewResponse(10021)
+	}
+	if u.GetRootUserId() == id {
+		return response.NewResponse(10079)
+	}
+	// 1. 软删除user表中的数据
+	u.DB.Delete(&user)
+	// 2. 软删除user—identity表中的数据
+	var userIdentity model.UserIdentity
+	u.DB.Where("user_id = ?", user.ID).Delete(&userIdentity)
+	// 3. 软删除user-group表中的数据
+	var userGroup model.UserGroup
+	update := u.DB.Where("user_id = ?", user.ID).Delete(&userGroup)
+	return update.Error
+}
+
+func (u *UserService) CreateUser(dto dto.RegisterDTO) error {
+	user, err := u.GetUserByUsername(dto.Username)
+	// 若记录存在
+	if user.ID > 0 {
+		return response.NewResponse(10071)
+	}
+	if dto.Email != "" {
+		userByEmail, _ := u.GetUserByEmail(dto.Email)
+		// 若记录存在
+		if userByEmail.ID > 0 {
+			return response.NewResponse(10076)
+		}
+	}
+	// 开启事务
+	err = u.DB.Transaction(func(tx *gorm.DB) error {
+		var user model.User
+		copier.Copy(&user, &dto)
+		if err := tx.Select("Username", "Email").Create(&user).Error; err != nil {
+			return err
+		}
+		// 若指定了权限分组
+		if dto.GroupIds != nil && len(dto.GroupIds) > 0 {
+			if err := u.GroupService.CheckGroupsExist(dto.GroupIds); err != nil {
+				return err
+			}
+			if err := u.GroupService.CheckGroupsValid(dto.GroupIds); err != nil {
+				return err
+			}
+			var (
+				userGroups = make([]model.UserGroup, 0)
+				userGroup  model.UserGroup
+			)
+			for _, groupId := range dto.GroupIds {
+				userGroups = append(userGroups, model.UserGroup{
+					UserID:  user.ID,
+					GroupID: groupId,
+				})
+			}
+			if err := tx.Debug().Model(&userGroup).Create(userGroups).Error; err != nil {
+				return err
+			}
+		} else {
+			// 未指定分组则默认Guest
+			guest, _ := u.GroupService.GetGroupByLevel(Guest)
+			group := model.UserGroup{
+				UserID:  user.ID,
+				GroupID: guest.ID,
+			}
+			if err := tx.Create(&group).Error; err != nil {
+				return err
+			}
+		}
+		if err := u.CreateUsernamePasswordIdentity(user.ID, dto.Username, dto.Password); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return response.NewResponse(10200)
+	}
+	return nil
+}
+
+func (u *UserService) CreateUsernamePasswordIdentity(userId int, username, password string) error {
+	userIdentity := model.UserIdentity{
+		UserID:       userId,
+		Identifier:   username,
+		Credential:   pkg.EncodePassword(password),
+		IdentityType: UserPassword.String(),
+	}
+	return u.DB.Select("UserID", "Identifier", "Credential", "IdentityType").Create(&userIdentity).Error
 }

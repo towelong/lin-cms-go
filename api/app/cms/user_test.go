@@ -3,6 +3,8 @@ package cms
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/jianfengye/collection"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -70,7 +72,6 @@ func TestUserAPI_Login(t *testing.T) {
 			ID:         1,
 			CreateTime: time.Now(),
 			UpdateTime: time.Now(),
-			DeleteTime: nil,
 		},
 	}
 
@@ -242,4 +243,17 @@ func TestUserAPI_Login(t *testing.T) {
 			testcase.checkBody(t, w)
 		})
 	}
+}
+
+func TestName(t *testing.T) {
+	var userGroups []model.UserGroup
+	intColl := collection.NewIntCollection([]int{1, 2, 3})
+	intColl.Map(func(item interface{}, key int) interface{} {
+		groupId := item.(int)
+		return &model.UserGroup{
+			UserID:  1,
+			GroupID: groupId,
+		}
+	}).ToObjs(&userGroups)
+	fmt.Println(userGroups)
 }

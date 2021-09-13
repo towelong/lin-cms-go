@@ -22,7 +22,7 @@ type PermissionService struct {
 
 func (p *PermissionService) CreateNewPermission(module, permissionName string, mount bool) {
 	var permission model.Permission
-	db := p.DB.Where("module = ? AND name = ?  AND delete_time is null", module, permissionName).First(&permission)
+	db := p.DB.Where("module = ? AND name = ?", module, permissionName).First(&permission)
 	if db.RowsAffected == 0 {
 		permission = model.Permission{
 			Module: module,
@@ -38,7 +38,7 @@ func (p *PermissionService) CreateNewPermission(module, permissionName string, m
 }
 
 func (p *PermissionService) GetPermissions() (permissions []*model.Permission, err error) {
-	db := p.DB.Where("delete_time is null").Find(&permissions)
+	db := p.DB.Find(&permissions)
 	if db.RowsAffected > 0 {
 		return permissions, nil
 	}
@@ -72,7 +72,7 @@ func (p *PermissionService) UpdatePermission(permission model.Permission) error 
 
 func (p *PermissionService) RemoveNotMountPermission(ids []int) error {
 	var permissions []model.Permission
-	db := p.DB.Where("delete_time is null").Not(ids).Find(&permissions)
+	db := p.DB.Not(ids).Find(&permissions)
 	if db.Error != nil {
 		return db.Error
 	}

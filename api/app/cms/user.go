@@ -5,6 +5,7 @@ import (
 	"github.com/towelong/lin-cms-go/internal/domain/dto"
 	"github.com/towelong/lin-cms-go/internal/middleware"
 	"github.com/towelong/lin-cms-go/internal/service"
+	"github.com/towelong/lin-cms-go/pkg/response"
 	"github.com/towelong/lin-cms-go/pkg/router"
 	"github.com/towelong/lin-cms-go/pkg/token"
 	"net/http"
@@ -17,9 +18,16 @@ type UserAPI struct {
 }
 
 func (u *UserAPI) Register(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{
-		"hello": ctx,
-	})
+	var register dto.RegisterDTO
+	if err := ctx.ShouldBindJSON(&register);err != nil {
+		ctx.Error(err)
+		return
+	}
+	if err := u.UserService.CreateUser(register);err != nil {
+		ctx.Error(err)
+		return
+	}
+	response.CreatedVO(ctx)
 }
 
 func (u *UserAPI) Login(ctx *gin.Context) {

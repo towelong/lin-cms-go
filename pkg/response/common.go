@@ -11,6 +11,13 @@ func UnifyResponse(code int64, ctx *gin.Context) *Response{
 	return response
 }
 
+func ParmeterInvalid(ctx *gin.Context, code int64, message string) *Response {
+	response := NewResponse(code)
+	response.SetRequest(ctx.Request.RequestURI)
+	response.SetMessage(message)
+	return response
+}
+
 func WrapResponse(ctx *gin.Context, response *Response) *Response{
 	response.SetRequest(ctx.Request.RequestURI)
 	return response
