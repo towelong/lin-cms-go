@@ -10,6 +10,7 @@ import (
 	"github.com/towelong/lin-cms-go/pkg"
 	"github.com/towelong/lin-cms-go/pkg/response"
 	"gorm.io/gorm"
+	"time"
 )
 
 type IUserService interface {
@@ -19,10 +20,15 @@ type IUserService interface {
 	IsAdmin(id int) (bool, error)
 	VerifyUser(username, password string) (model.User, error)
 	GetRootUserId() int
+	// ChangeUserPassword 用于超级管理员修改用户密码
 	ChangeUserPassword(id int, newPassword string) error
 	DeleteUser(id int) error
 	CreateUser(dto dto.RegisterDTO) error
 	CreateUsernamePasswordIdentity(userId int, username, password string) error
+	// ChangePassword 用于用户本身修改密码
+	ChangePassword(id int, passwordDTO dto.ChangePasswordDTO) error
+	UpdateProfile(id int, dto dto.UpdateInfoDTO) error
+	GetUserGroupByUserId(id int) (groups []model.Group)
 }
 
 type UserService struct {
@@ -170,7 +176,7 @@ func (u UserService) ChangeUserPassword(id int, newPassword string) error {
 	var userIdentity model.UserIdentity
 	db := u.DB.Where("user_id = ?", user.ID).First(&userIdentity)
 	password := pkg.EncodePassword(newPassword)
-	save := db.Debug().Model(&userIdentity).Update("credential", password)
+	save := db.Model(&userIdentity).Update("credential", password)
 	return save.Error
 }
 
@@ -231,7 +237,7 @@ func (u *UserService) CreateUser(dto dto.RegisterDTO) error {
 					GroupID: groupId,
 				})
 			}
-			if err := tx.Debug().Model(&userGroup).Create(userGroups).Error; err != nil {
+			if err := tx.Model(&userGroup).Create(userGroups).Error; err != nil {
 				return err
 			}
 		} else {
@@ -264,4 +270,47 @@ func (u *UserService) CreateUsernamePasswordIdentity(userId int, username, passw
 		IdentityType: UserPassword.String(),
 	}
 	return u.DB.Select("UserID", "Identifier", "Credential", "IdentityType").Create(&userIdentity).Error
+}
+
+func (u *UserService) ChangePassword(id int, passwordDTO dto.ChangePasswordDTO) error {
+	userIdentity, err := u.GetUserIdentityById(id)
+	if err != nil {
+		return err
+	}
+	if !pkg.VerifyPsw(passwordDTO.OldPassword, userIdentity.Credential) {
+		return response.NewResponse(10032)
+	}
+	password := pkg.EncodePassword(passwordDTO.NewPassword)
+	update := u.DB.Model(&userIdentity).Update("credential", password)
+	return update.Error
+}
+
+func (u *UserService) GetUserIdentityById(id int) (model.UserIdentity, error) {
+	_, err := u.GetUserById(id)
+	if err != nil {
+		return model.UserIdentity{}, response.NewResponse(10021)
+	}
+	var userIdentity model.UserIdentity
+	u.DB.Where("user_id = ?", id).First(&userIdentity)
+	return userIdentity, nil
+}
+
+func (u *UserService) UpdateProfile(id int, dto dto.UpdateInfoDTO) error {
+	user, err := u.GetUserById(id)
+	if err != nil {
+		return response.NewResponse(10021)
+	}
+	copier.CopyWithOption(&user, &dto, copier.Option{IgnoreEmpty: true})
+	user.UpdateTime = time.Now()
+	err = u.DB.Save(&user).Error
+	if err != nil {
+		return response.NewResponse(10200)
+	}
+	return nil
+}
+
+func (u *UserService) GetUserGroupByUserId(id int) (groups []model.Group) {
+	groups = make([]model.Group, 0)
+	groups, _ = u.GroupService.GetUserGroupByUserId(id)
+	return groups
 }

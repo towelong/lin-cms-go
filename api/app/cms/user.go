@@ -2,7 +2,10 @@ package cms
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 	"github.com/towelong/lin-cms-go/internal/domain/dto"
+	"github.com/towelong/lin-cms-go/internal/domain/model"
+	"github.com/towelong/lin-cms-go/internal/domain/vo"
 	"github.com/towelong/lin-cms-go/internal/middleware"
 	"github.com/towelong/lin-cms-go/internal/service"
 	"github.com/towelong/lin-cms-go/pkg/response"
@@ -19,11 +22,11 @@ type UserAPI struct {
 
 func (u *UserAPI) Register(ctx *gin.Context) {
 	var register dto.RegisterDTO
-	if err := ctx.ShouldBindJSON(&register);err != nil {
+	if err := ctx.ShouldBindJSON(&register); err != nil {
 		ctx.Error(err)
 		return
 	}
-	if err := u.UserService.CreateUser(register);err != nil {
+	if err := u.UserService.CreateUser(register); err != nil {
 		ctx.Error(err)
 		return
 	}
@@ -46,6 +49,53 @@ func (u *UserAPI) Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, tokens)
 }
 
+func (u *UserAPI) UpdatePassword(ctx *gin.Context) {
+	var passwordDTO dto.ChangePasswordDTO
+	if err := ctx.ShouldBindJSON(&passwordDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	user, _ := ctx.Get("currentUser")
+	currentUser := user.(model.User)
+	if err := u.UserService.ChangePassword(currentUser.ID, passwordDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	response.UpdatedVO(ctx)
+}
+
+func (u *UserAPI) Update(ctx *gin.Context)  {
+	var userInfoDTO dto.UpdateInfoDTO
+	if err := ctx.ShouldBindJSON(&userInfoDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	user, _ := ctx.Get("currentUser")
+	currentUser := user.(model.User)
+	if err := u.UserService.UpdateProfile(currentUser.ID, userInfoDTO);err!=nil {
+		ctx.Error(err)
+		return
+	}
+	response.UpdatedVO(ctx)
+}
+
+func (u *UserAPI) RefreshToken(ctx *gin.Context) {
+	user, _ := ctx.Get("currentUser")
+	currentUser := user.(model.User)
+	tokens := u.JWT.GenerateTokens(currentUser.ID)
+	ctx.JSON(http.StatusOK, tokens)
+}
+
+func (u *UserAPI) GetInformation(ctx *gin.Context)  {
+	user, _ := ctx.Get("currentUser")
+	currentUser := user.(model.User)
+	groups := u.UserService.GetUserGroupByUserId(currentUser.ID)
+	var userInfo vo.UserInfo
+	copier.Copy(&userInfo, &currentUser)
+	copier.CopyWithOption(&userInfo.Groups, &groups, copier.Option{IgnoreEmpty: true})
+	ctx.JSON(http.StatusOK, userInfo)
+}
+
 func (u UserAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 	userRouter := router.NewLinRouter("/user", "用户", routerGroup)
 	userRouter.LinPOST(
@@ -55,5 +105,9 @@ func (u UserAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 		u.Auth.AdminRequired,
 		u.Register,
 	)
+	userRouter.PUT("/change_password", u.Auth.LoginRequired, u.UpdatePassword)
 	userRouter.POST("/login", u.Login)
+	userRouter.PUT("", u.Auth.LoginRequired, u.Update)
+	userRouter.GET("/refresh", u.Auth.RefreshRequired, u.RefreshToken)
+	userRouter.GET("/information", u.Auth.LoginRequired, u.GetInformation)
 }

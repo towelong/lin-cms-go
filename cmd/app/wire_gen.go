@@ -34,10 +34,10 @@ func NewInjector() (*internal.Injector, error) {
 		DB:           gormDB,
 		GroupService: groupService,
 	}
-	iToken := jwt.NewJWTMaker()
 	serviceGroupService := &service.GroupService{
 		DB: gormDB,
 	}
+	iToken := jwt.NewJWTMaker()
 	auth := middleware.Auth{
 		JWT:          iToken,
 		UserService:  userService,
@@ -46,6 +46,7 @@ func NewInjector() (*internal.Injector, error) {
 	adminAPI := &cms.AdminAPI{
 		PermissionService: permissionService,
 		UserService:       userService,
+		GroupService:      serviceGroupService,
 		Auth:              auth,
 	}
 	userAPI := &cms.UserAPI{

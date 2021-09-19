@@ -14,6 +14,7 @@ import (
 type AdminAPI struct {
 	PermissionService service.IPermissionService
 	UserService       service.IUserService
+	GroupService      service.IGroupService
 	Auth              middleware.Auth
 }
 
@@ -24,6 +25,48 @@ func (admin *AdminAPI) GetAllPermissions(ctx *gin.Context) {
 	} else {
 		ctx.JSON(200, permissions)
 	}
+}
+
+func (admin *AdminAPI) GetGroups(ctx *gin.Context) {
+	var page dto.BasePage
+	if err := ctx.ShouldBindQuery(&page); err != nil {
+		ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, admin.GroupService.GetPageGroups(page))
+}
+
+func (admin *AdminAPI) GetAllGroups(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, admin.GroupService.GetAllGroups())
+}
+
+func (admin *AdminAPI) GetGroup(ctx *gin.Context) {
+	param := ctx.Param("id")
+	id, _ := strconv.Atoi(param)
+	if id <= 0 {
+		ctx.Error(response.ParmeterInvalid(ctx, 10030, "用户编号必须是正整数"))
+		return
+	}
+	groupInfo, err := admin.GroupService.GetGroupById(id)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, groupInfo)
+}
+
+func (admin *AdminAPI) CreateGroup(ctx *gin.Context) {
+	var groupDTO dto.NewGroupDTO
+	if err := ctx.ShouldBindJSON(&groupDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	err := admin.GroupService.CreateGroup(groupDTO)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	response.CreatedVO(ctx)
 }
 
 func (admin *AdminAPI) GetUsers(ctx *gin.Context) {
@@ -104,5 +147,34 @@ func (admin *AdminAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 		adminRouter.Permission("删除用户", true),
 		admin.Auth.AdminRequired,
 		admin.DeleteUser,
+	)
+
+	adminRouter.LinGET(
+		"GetGroups",
+		"/group",
+		adminRouter.Permission("查询所有权限组及其权限", true),
+		admin.Auth.AdminRequired,
+		admin.GetGroups,
+	)
+	adminRouter.LinGET(
+		"GetAllGroups",
+		"/group/all",
+		adminRouter.Permission("查询所有权限组", true),
+		admin.Auth.AdminRequired,
+		admin.GetAllGroups,
+	)
+	adminRouter.LinPOST(
+		"CreateGroup",
+		"/group",
+		adminRouter.Permission("新建权限组", true),
+		admin.Auth.AdminRequired,
+		admin.CreateGroup,
+	)
+	adminRouter.LinGET(
+		"GetGroup",
+		"/group/:id",
+		adminRouter.Permission("查询一个权限组及其权限", true),
+		admin.Auth.AdminRequired,
+		admin.GetGroup,
 	)
 }

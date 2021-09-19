@@ -1,7 +1,10 @@
 package service
 
 import (
+	"github.com/jinzhu/copier"
+	"github.com/towelong/lin-cms-go/internal/domain/dto"
 	"github.com/towelong/lin-cms-go/internal/domain/model"
+	"github.com/towelong/lin-cms-go/internal/domain/vo"
 	"github.com/towelong/lin-cms-go/pkg/response"
 	"github.com/towelong/lin-cms-go/pkg/router"
 	"gorm.io/gorm"
@@ -14,6 +17,10 @@ type IGroupService interface {
 	CheckGroupsValid(ids []int) error
 	CheckGroupsExist(ids []int) error
 	CheckGroupExistById(id int) error
+	GetPageGroups(page dto.BasePage) *vo.Page
+	GetAllGroups() []vo.Group
+	GetGroupById(id int) (groupInfo vo.GroupInfo, err error)
+	CreateGroup(groupDTO dto.NewGroupDTO) error
 }
 
 type GroupService struct {
@@ -27,6 +34,28 @@ func (g *GroupService) GetGroupByLevel(level int) (group *model.Group, err error
 		return nil, err
 	}
 	return group, nil
+}
+
+func (g *GroupService) GetGroupById(id int) (groupInfo vo.GroupInfo, err error) {
+	var group model.Group
+	res := g.DB.First(&group, id)
+	err = res.Error
+	if err != nil {
+		return vo.GroupInfo{}, response.NewResponse(10024)
+	}
+	var groupPermissions []model.GroupPermission
+	if err = g.DB.Where("group_id = ?", id).Find(&groupPermissions).Error; err != nil {
+		groupInfo.Permissions = make([]vo.Permission, 0)
+	}
+	var ids []int
+	for _, groupPermission := range groupPermissions {
+		ids = append(ids, groupPermission.PermissionID)
+	}
+	var permissions []model.Permission
+	g.DB.Find(&permissions, ids)
+	copier.Copy(&groupInfo.Permissions, &permissions)
+	copier.Copy(&groupInfo, &group)
+	return groupInfo, nil
 }
 
 func (g *GroupService) GetUserHasPermission(useId int, meta router.Meta) bool {
@@ -98,6 +127,45 @@ func (g *GroupService) CheckGroupsExist(ids []int) error {
 		err := g.CheckGroupExistById(id)
 		if err != nil {
 			return response.NewResponse(10023)
+		}
+	}
+	return nil
+}
+
+func (g *GroupService) GetPageGroups(page dto.BasePage) *vo.Page {
+	var groups = make([]vo.Group, 0)
+	newPage := vo.NewPage(page.Page, page.Count)
+	db := g.DB.Limit(page.Count).Offset(page.Page * page.Count).Find(&groups)
+	newPage.Total = int(db.RowsAffected)
+	newPage.Items = groups
+	return newPage
+}
+
+func (g *GroupService) GetAllGroups() []vo.Group {
+	var groups = make([]vo.Group, 0)
+	rootGroup, _ := g.GetGroupByLevel(Root)
+	g.DB.Where("level <> ?", rootGroup.ID).Find(&groups)
+	return groups
+}
+
+func (g *GroupService) CreateGroup(groupDTO dto.NewGroupDTO) error {
+	var group model.Group
+	copier.Copy(&group, &groupDTO)
+	create := g.DB.Select("Name", "Info").Create(&group)
+	if create.Error != nil {
+		return response.NewResponse(10200)
+	}
+	if len(groupDTO.PermissionIds) > 0 {
+		for _, permissionId := range groupDTO.PermissionIds {
+			var permission model.Permission
+			if err := g.DB.First(&permission, permissionId).Error; err != nil {
+				return response.NewResponse(10231)
+			}
+			groupPermission := model.GroupPermission{
+				GroupID:      group.ID,
+				PermissionID: permissionId,
+			}
+			g.DB.Create(&groupPermission)
 		}
 	}
 	return nil
