@@ -66,7 +66,7 @@ func (admin *AdminAPI) CreateGroup(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	response.CreatedVO(ctx)
+	response.CreatedVO(ctx, 15)
 }
 
 func (admin *AdminAPI) UpdateGroup(ctx *gin.Context) {
@@ -85,7 +85,7 @@ func (admin *AdminAPI) UpdateGroup(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	response.UpdatedVO(ctx)
+	response.UpdatedVO(ctx, 7)
 }
 
 func (admin *AdminAPI) DeleteGroup(ctx *gin.Context) {
@@ -99,7 +99,7 @@ func (admin *AdminAPI) DeleteGroup(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	response.DeletedVO(ctx)
+	response.DeletedVO(ctx, 8)
 }
 
 func (admin *AdminAPI) GetUsers(ctx *gin.Context) {
@@ -133,7 +133,7 @@ func (admin *AdminAPI) ChangeUserPassword(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	response.UpdatedVO(ctx)
+	response.UpdatedVO(ctx, 4)
 }
 
 func (admin *AdminAPI) DeleteUser(ctx *gin.Context) {
@@ -148,7 +148,7 @@ func (admin *AdminAPI) DeleteUser(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	response.DeletedVO(ctx)
+	response.DeletedVO(ctx,5)
 }
 
 func (admin *AdminAPI) RegisterServer(routerGroup *gin.RouterGroup) {
@@ -181,6 +181,7 @@ func (admin *AdminAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 		admin.Auth.AdminRequired,
 		admin.DeleteUser,
 	)
+	// TODO: 管理员更新用户信息
 
 	adminRouter.LinGET(
 		"GetGroups",
@@ -224,4 +225,7 @@ func (admin *AdminAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 		admin.Auth.AdminRequired,
 		admin.DeleteGroup,
 	)
+	// TODO: 分配单个权限
+	// TODO: 分配多个权限
+	// TODO: 删除多个权限
 }

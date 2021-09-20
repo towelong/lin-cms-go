@@ -27,16 +27,16 @@ func Success(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, UnifyResponse(0, ctx))
 }
 
-func CreatedVO(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, UnifyResponse(1, ctx))
+func CreatedVO(ctx *gin.Context, code int64) {
+	ctx.JSON(http.StatusOK, UnifyResponse(code, ctx))
 }
 
-func UpdatedVO(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, UnifyResponse(2, ctx))
+func UpdatedVO(ctx *gin.Context, code int64) {
+	ctx.JSON(http.StatusOK, UnifyResponse(code, ctx))
 }
 
-func DeletedVO(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, UnifyResponse(3, ctx))
+func DeletedVO(ctx *gin.Context, code int64) {
+	ctx.JSON(http.StatusOK, UnifyResponse(code, ctx))
 }
 
 func NotFound(ctx *gin.Context) {

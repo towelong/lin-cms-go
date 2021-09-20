@@ -30,7 +30,7 @@ func (u *UserAPI) Register(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	response.CreatedVO(ctx)
+	response.CreatedVO(ctx, 11)
 }
 
 func (u *UserAPI) Login(ctx *gin.Context) {
@@ -61,7 +61,7 @@ func (u *UserAPI) UpdatePassword(ctx *gin.Context) {
 		ctx.Error(err)
 		return
 	}
-	response.UpdatedVO(ctx)
+	response.UpdatedVO(ctx, 4)
 }
 
 func (u *UserAPI) Update(ctx *gin.Context)  {
@@ -76,7 +76,7 @@ func (u *UserAPI) Update(ctx *gin.Context)  {
 		ctx.Error(err)
 		return
 	}
-	response.UpdatedVO(ctx)
+	response.UpdatedVO(ctx, 6)
 }
 
 func (u *UserAPI) RefreshToken(ctx *gin.Context) {
@@ -96,6 +96,17 @@ func (u *UserAPI) GetInformation(ctx *gin.Context)  {
 	ctx.JSON(http.StatusOK, userInfo)
 }
 
+func (u *UserAPI) GetPermissions(ctx *gin.Context)  {
+	user, _ := ctx.Get("currentUser")
+	currentUser := user.(model.User)
+	info, err := u.UserService.GetUserPermissionsInfo(currentUser.ID)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, info)
+}
+
 func (u UserAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 	userRouter := router.NewLinRouter("/user", "用户", routerGroup)
 	userRouter.LinPOST(
@@ -110,4 +121,5 @@ func (u UserAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 	userRouter.PUT("", u.Auth.LoginRequired, u.Update)
 	userRouter.GET("/refresh", u.Auth.RefreshRequired, u.RefreshToken)
 	userRouter.GET("/information", u.Auth.LoginRequired, u.GetInformation)
+	userRouter.GET("/permissions", u.Auth.LoginRequired, u.GetPermissions)
 }

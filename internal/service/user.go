@@ -29,6 +29,7 @@ type IUserService interface {
 	ChangePassword(id int, passwordDTO dto.ChangePasswordDTO) error
 	UpdateProfile(id int, dto dto.UpdateInfoDTO) error
 	GetUserGroupByUserId(id int) (groups []model.Group)
+	GetUserPermissionsInfo(id int) (userPermissions vo.UserPermissionInfo, err error)
 }
 
 type UserService struct {
@@ -313,4 +314,60 @@ func (u *UserService) GetUserGroupByUserId(id int) (groups []model.Group) {
 	groups = make([]model.Group, 0)
 	groups, _ = u.GroupService.GetUserGroupByUserId(id)
 	return groups
+}
+
+func (u *UserService) GetUserPermissionsInfo(id int) (userPermissions vo.UserPermissionInfo, err error) {
+	user, err := u.GetUserById(id)
+	if err != nil {
+		return vo.UserPermissionInfo{}, response.NewResponse(10021)
+	}
+	userPermissions.Permissions = make([]map[string][]vo.PurePermission, 0)
+	copier.Copy(&userPermissions, &user)
+	if id == u.GetRootUserId() {
+		userPermissions.Admin = true
+	} else {
+		userPermissions.Admin = false
+	}
+	groups := u.GetUserGroupByUserId(user.ID)
+	groupIds := make([]int, 0)
+	for _, group := range groups {
+		groupIds = append(groupIds, group.ID)
+	}
+	var (
+		structMap  = make(map[string][]vo.PurePermission)
+		structMaps = make([]map[string][]vo.PurePermission, 0)
+	)
+	if len(groupIds) > 0 {
+		var groupPermissions []model.GroupPermission
+		u.DB.Where("group_id in ?", groupIds).Find(&groupPermissions)
+		if len(groupPermissions) == 0 {
+			return userPermissions, nil
+		}
+		var permissionIds = make([]int, 0)
+		for _, groupPermission := range groupPermissions {
+			permissionIds = append(permissionIds, groupPermission.PermissionID)
+		}
+		var permissions []model.Permission
+		u.DB.Find(&permissions, permissionIds)
+		for _, permission := range permissions {
+			if _, ok := structMap[permission.Module]; ok {
+				var purePermission vo.PurePermission
+				copier.Copy(&purePermission, &permission)
+				structMap[permission.Module] = append(structMap[permission.Module], purePermission)
+			} else {
+				var purePermissions = make([]vo.PurePermission, 0)
+				var purePermission vo.PurePermission
+				copier.Copy(&purePermission, &permission)
+				purePermissions = append(purePermissions, purePermission)
+				structMap[permission.Module] = append(structMap[permission.Module], purePermissions...)
+			}
+		}
+		for key, value := range structMap {
+			var newMap = make(map[string][]vo.PurePermission)
+			newMap[key] = value
+			structMaps = append(structMaps, newMap)
+		}
+	}
+	userPermissions.Permissions = structMaps
+	return userPermissions, nil
 }
