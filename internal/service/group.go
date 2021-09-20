@@ -8,10 +8,12 @@ import (
 	"github.com/towelong/lin-cms-go/pkg/response"
 	"github.com/towelong/lin-cms-go/pkg/router"
 	"gorm.io/gorm"
+	"time"
 )
 
 type IGroupService interface {
 	GetGroupByLevel(level int) (group *model.Group, err error)
+	GetGroupByName(name string) (group model.Group, err error)
 	GetUserHasPermission(useId int, meta router.Meta) bool
 	GetUserGroupByUserId(userId int) ([]model.Group, error)
 	CheckGroupsValid(ids []int) error
@@ -21,6 +23,8 @@ type IGroupService interface {
 	GetAllGroups() []vo.Group
 	GetGroupById(id int) (groupInfo vo.GroupInfo, err error)
 	CreateGroup(groupDTO dto.NewGroupDTO) error
+	UpdateGroup(id int, groupDTO dto.UpdateGroupDTO) error
+	DeleteGroup(id int) error
 }
 
 type GroupService struct {
@@ -34,6 +38,11 @@ func (g *GroupService) GetGroupByLevel(level int) (group *model.Group, err error
 		return nil, err
 	}
 	return group, nil
+}
+
+func (g *GroupService) GetGroupByName(name string) (group model.Group, err error) {
+	err = g.DB.Where("name = ?", name).First(&group).Error
+	return group, err
 }
 
 func (g *GroupService) GetGroupById(id int) (groupInfo vo.GroupInfo, err error) {
@@ -133,19 +142,24 @@ func (g *GroupService) CheckGroupsExist(ids []int) error {
 }
 
 func (g *GroupService) GetPageGroups(page dto.BasePage) *vo.Page {
-	var groups = make([]vo.Group, 0)
+	var groups []model.Group
+	var newGroups = make([]vo.Group, 0)
 	newPage := vo.NewPage(page.Page, page.Count)
-	db := g.DB.Limit(page.Count).Offset(page.Page * page.Count).Find(&groups)
+	rootLevel, _ := g.GetGroupByLevel(Root)
+	db := g.DB.Limit(page.Count).Offset(page.Page * page.Count).Where("id <> ?", rootLevel.ID).Find(&groups)
 	newPage.Total = int(db.RowsAffected)
-	newPage.Items = groups
+	copier.CopyWithOption(&newGroups, &groups, copier.Option{IgnoreEmpty: true})
+	newPage.Items = newGroups
 	return newPage
 }
 
 func (g *GroupService) GetAllGroups() []vo.Group {
-	var groups = make([]vo.Group, 0)
+	var groups []model.Group
+	var newGroups = make([]vo.Group, 0)
 	rootGroup, _ := g.GetGroupByLevel(Root)
-	g.DB.Where("level <> ?", rootGroup.ID).Find(&groups)
-	return groups
+	g.DB.Where("id <> ?", rootGroup.ID).Find(&groups)
+	copier.CopyWithOption(&newGroups, &groups, copier.Option{IgnoreEmpty: true})
+	return newGroups
 }
 
 func (g *GroupService) CreateGroup(groupDTO dto.NewGroupDTO) error {
@@ -169,4 +183,45 @@ func (g *GroupService) CreateGroup(groupDTO dto.NewGroupDTO) error {
 		}
 	}
 	return nil
+}
+
+func (g *GroupService) UpdateGroup(id int, groupDTO dto.UpdateGroupDTO) error {
+	var group model.Group
+	err := g.DB.First(&group, id).Error
+	if err != nil {
+		return response.NewResponse(10024)
+	}
+	// 若分组名称被修改则校验名称是否重复
+	if group.Name != groupDTO.Name {
+		_, err := g.GetGroupByName(groupDTO.Name)
+		if err != nil {
+			return response.NewResponse(10072)
+		}
+	}
+	copier.CopyWithOption(&group, &groupDTO, copier.Option{IgnoreEmpty: true})
+	group.UpdateTime = time.Now()
+	err = g.DB.Save(&group).Error
+	return err
+}
+
+func (g *GroupService) DeleteGroup(id int) error {
+	_, err := g.GetGroupById(id)
+	if err != nil {
+		return response.NewResponse(10024)
+	}
+	root, _ := g.GetGroupByLevel(Root)
+	guest, _ := g.GetGroupByLevel(Guest)
+	if root.ID == id {
+		return response.NewResponse(10074)
+	}
+	if guest.ID == id {
+		return response.NewResponse(10075)
+	}
+	var userGroups []model.UserGroup
+	g.DB.Where("group_id = ?", id).Find(&userGroups)
+	if len(userGroups) > 0 {
+		return response.NewResponse(10027)
+	}
+	// TODO: 关联的权限还未删除
+	return g.DB.Delete(&model.Group{}, id).Error
 }

@@ -44,7 +44,7 @@ func (admin *AdminAPI) GetGroup(ctx *gin.Context) {
 	param := ctx.Param("id")
 	id, _ := strconv.Atoi(param)
 	if id <= 0 {
-		ctx.Error(response.ParmeterInvalid(ctx, 10030, "用户编号必须是正整数"))
+		ctx.Error(response.ParmeterInvalid(ctx, 10030, "id必须是正整数"))
 		return
 	}
 	groupInfo, err := admin.GroupService.GetGroupById(id)
@@ -67,6 +67,39 @@ func (admin *AdminAPI) CreateGroup(ctx *gin.Context) {
 		return
 	}
 	response.CreatedVO(ctx)
+}
+
+func (admin *AdminAPI) UpdateGroup(ctx *gin.Context) {
+	param := ctx.Param("id")
+	id, _ := strconv.Atoi(param)
+	if id <= 0 {
+		ctx.Error(response.ParmeterInvalid(ctx, 10030, "id必须是正整数"))
+		return
+	}
+	var groupDTO dto.UpdateGroupDTO
+	if err := ctx.ShouldBindJSON(&groupDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	if err := admin.GroupService.UpdateGroup(id, groupDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	response.UpdatedVO(ctx)
+}
+
+func (admin *AdminAPI) DeleteGroup(ctx *gin.Context) {
+	param := ctx.Param("id")
+	id, _ := strconv.Atoi(param)
+	if id <= 0 {
+		ctx.Error(response.ParmeterInvalid(ctx, 10030, "id必须是正整数"))
+		return
+	}
+	if err := admin.GroupService.DeleteGroup(id);err!=nil {
+		ctx.Error(err)
+		return
+	}
+	response.DeletedVO(ctx)
 }
 
 func (admin *AdminAPI) GetUsers(ctx *gin.Context) {
@@ -176,5 +209,19 @@ func (admin *AdminAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 		adminRouter.Permission("查询一个权限组及其权限", true),
 		admin.Auth.AdminRequired,
 		admin.GetGroup,
+	)
+	adminRouter.LinPUT(
+		"UpdateGroup",
+		"/group/:id",
+		adminRouter.Permission("更新一个权限组", true),
+		admin.Auth.AdminRequired,
+		admin.UpdateGroup,
+	)
+	adminRouter.LinDELETE(
+		"DeleteGroup",
+		"/group/:id",
+		adminRouter.Permission("删除一个权限组", true),
+		admin.Auth.AdminRequired,
+		admin.DeleteGroup,
 	)
 }
