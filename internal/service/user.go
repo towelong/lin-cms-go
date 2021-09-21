@@ -30,6 +30,7 @@ type IUserService interface {
 	UpdateProfile(id int, dto dto.UpdateInfoDTO) error
 	GetUserGroupByUserId(id int) (groups []model.Group)
 	GetUserPermissionsInfo(id int) (userPermissions vo.UserPermissionInfo, err error)
+	UpdateUserInfo(id int, dto dto.UpdateGroupsDTO) error
 }
 
 type UserService struct {
@@ -370,4 +371,56 @@ func (u *UserService) GetUserPermissionsInfo(id int) (userPermissions vo.UserPer
 	}
 	userPermissions.Permissions = structMaps
 	return userPermissions, nil
+}
+
+func (u *UserService) UpdateUserInfo(id int, dto dto.UpdateGroupsDTO) error {
+	newGroupIds := dto.GroupIds
+	if _, err := u.GetUserById(id); err != nil {
+		return response.NewResponse(10021)
+	}
+	rootLevel, _ := u.GroupService.GetGroupByLevel(Root)
+	for _, groupId := range newGroupIds {
+		// 校验分组是否为非Root分组
+		if groupId == rootLevel.ID {
+			return response.NewResponse(10073)
+		}
+		// 校验分组是否存在
+		if _, err := u.GroupService.GetGroupById(groupId); err != nil {
+			return err
+		}
+	}
+	var existGroups []model.UserGroup
+	u.DB.Where("user_id = ?", id).Find(&existGroups)
+	// 将existGroupIds取出来
+	existGroupIds, _ := collection.NewObjCollection(existGroups).Pluck("GroupID").ToInts()
+	// 创建两个int集合，一个为数据库中存在的group_id集合， 一个为前端传递的group_id集合
+	existColl := collection.NewIntCollection(existGroupIds)
+	newColl := collection.NewIntCollection(newGroupIds)
+	// existGroupIds没有的 即为新增的
+	addIds, _ := newColl.Filter(func(obj interface{}, index int) bool {
+		val := obj.(int)
+		return !existColl.Contains(val)
+	}).ToInts()
+	// newGroupIds没有的 即为删除的
+	deleteIds, _ := existColl.Filter(func(obj interface{}, index int) bool {
+		val := obj.(int)
+		return !newColl.Contains(val)
+	}).ToInts()
+	// 删除existGroupIds有，而newGroupIds没有的
+	if len(deleteIds) > 0 {
+		u.DB.Where("group_id IN ?", deleteIds).Delete(&existGroups)
+	}
+	// 添加newGroupIds有，而existGroupIds没有的
+	if len(addIds) > 0 {
+		var userGroups []model.UserGroup
+		for _, addId := range addIds {
+			userGroups = append(userGroups, model.UserGroup{
+				UserID:  id,
+				GroupID: addId,
+			})
+		}
+		create := u.DB.Create(&userGroups)
+		return create.Error
+	}
+	return nil
 }

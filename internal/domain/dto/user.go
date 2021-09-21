@@ -44,3 +44,7 @@ type UpdateInfoDTO struct {
 	Username string `json:"username" validate:"omitempty,gte=2,lte=10" label:"用户名"`
 	Avatar   string `json:"avatar" validate:"omitempty,lte=500" label:"头像"`
 }
+
+type UpdateGroupsDTO struct {
+	GroupIds []int `json:"group_ids" validate:"required,dive,min=1"`
+}
