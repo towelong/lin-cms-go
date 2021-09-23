@@ -24,11 +24,12 @@ func NewInjector() (*internal.Injector, error) {
 	if err != nil {
 		return nil, err
 	}
-	permissionService := &service.PermissionService{
-		DB: gormDB,
-	}
 	groupService := service.GroupService{
 		DB: gormDB,
+	}
+	permissionService := &service.PermissionService{
+		DB:           gormDB,
+		GroupService: groupService,
 	}
 	userService := &service.UserService{
 		DB:           gormDB,
@@ -50,9 +51,10 @@ func NewInjector() (*internal.Injector, error) {
 		Auth:              auth,
 	}
 	userAPI := &cms.UserAPI{
-		JWT:         iToken,
-		UserService: userService,
-		Auth:        auth,
+		JWT:          iToken,
+		UserService:  userService,
+		GroupService: serviceGroupService,
+		Auth:         auth,
 	}
 	bookAPI := &v1.BookAPI{
 		Auth: auth,

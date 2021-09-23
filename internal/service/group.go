@@ -12,6 +12,7 @@ import (
 )
 
 type IGroupService interface {
+	GetRootGroup() (group model.Group)
 	GetGroupByLevel(level int) (group *model.Group, err error)
 	GetGroupByName(name string) (group model.Group, err error)
 	GetUserHasPermission(useId int, meta router.Meta) bool
@@ -30,6 +31,14 @@ type IGroupService interface {
 type GroupService struct {
 	DB *gorm.DB
 }
+func (g *GroupService) GetRootGroup() (group model.Group) {
+	err := g.DB.Where("level = ?", Root).First(&group).Error
+	if err != nil {
+		return model.Group{}
+	}
+	return group
+}
+
 
 func (g *GroupService) GetGroupByLevel(level int) (group *model.Group, err error) {
 	res := g.DB.Where("level = ?", level).First(&group)

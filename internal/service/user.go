@@ -314,6 +314,11 @@ func (u *UserService) UpdateProfile(id int, dto dto.UpdateInfoDTO) error {
 func (u *UserService) GetUserGroupByUserId(id int) (groups []model.Group) {
 	groups = make([]model.Group, 0)
 	groups, _ = u.GroupService.GetUserGroupByUserId(id)
+	for i, group := range groups {
+		if group.ID == u.GroupService.GetRootGroup().ID {
+			groups = append(groups[:i], groups[i+1:]...)
+		}
+	}
 	return groups
 }
 

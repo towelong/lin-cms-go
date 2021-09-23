@@ -1,8 +1,8 @@
 package dto
 
 type BasePage struct {
-	Page    int `json:"page" form:"page" validate:"omitempty,min=0" label:"分页数"`
-	Count   int `json:"count" form:"count" validate:"required,gte=1" label:"每页数量"`
+	Page  int `json:"page" form:"page" validate:"omitempty,min=0" label:"分页数"`
+	Count int `json:"count" form:"count" validate:"required,gte=1" label:"每页数量"`
 }
 
 type UserLoginDTO struct {
@@ -46,5 +46,5 @@ type UpdateInfoDTO struct {
 }
 
 type UpdateGroupsDTO struct {
-	GroupIds []int `json:"group_ids" validate:"required,dive,min=1"`
+	GroupIds []int `json:"group_ids" validate:"required,dive,min=1" label:"GroupIds"`
 }

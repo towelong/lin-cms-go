@@ -24,14 +24,10 @@ func (book *BookAPI) DeleteBook(ctx *gin.Context) {
 
 func (book *BookAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 	bookRouter := router.NewLinRouter("/book", "图书", routerGroup)
-	bookRouter.LinGET("BookList",
-		"/list",
-		bookRouter.Permission("图书列表", true),
-		book.GetBookList,
-	)
+	bookRouter.GET("/list", book.GetBookList)
 	bookRouter.LinDELETE("DeleteBook",
 		"/",
-		bookRouter.Permission("删除图书", false),
+		bookRouter.Permission("删除图书", true),
 		book.Auth.GroupRequired,
 		book.DeleteBook,
 	)

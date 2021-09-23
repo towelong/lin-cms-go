@@ -2,8 +2,10 @@ package service
 
 import (
 	"github.com/jinzhu/copier"
+	"github.com/towelong/lin-cms-go/internal/domain/dto"
 	"github.com/towelong/lin-cms-go/internal/domain/model"
 	"github.com/towelong/lin-cms-go/internal/domain/vo"
+	"github.com/towelong/lin-cms-go/pkg/response"
 	"gorm.io/gorm"
 	"log"
 )
@@ -14,10 +16,14 @@ type IPermissionService interface {
 	GetStructPermissions() (map[string][]vo.Permission, error)
 	UpdatePermission(permission model.Permission) error
 	RemoveNotMountPermission(ids []int) error
+	DispatchPermission(dto dto.DispatchPermissionDTO) error
+	DispatchPermissions(dto dto.DispatchPermissionsDTO) error
+	RemovePermissions(dto dto.DispatchPermissionsDTO) error
 }
 
 type PermissionService struct {
-	DB *gorm.DB
+	DB           *gorm.DB
+	GroupService GroupService
 }
 
 func (p *PermissionService) CreateNewPermission(module, permissionName string, mount bool) {
@@ -35,6 +41,15 @@ func (p *PermissionService) CreateNewPermission(module, permissionName string, m
 		permission.Mount = bool2Int(mount)
 		p.DB.Save(&permission)
 	}
+}
+
+func (p *PermissionService) GetPermissionById(id int) (model.Permission, error) {
+	var permission model.Permission
+	err := p.DB.First(&permission, id).Error
+	if err != nil {
+		return model.Permission{}, err
+	}
+	return permission, nil
 }
 
 func (p *PermissionService) GetPermissions() (permissions []*model.Permission, err error) {
@@ -85,6 +100,46 @@ func (p *PermissionService) RemoveNotMountPermission(ids []int) error {
 		}
 	}
 	return nil
+}
+
+func (p *PermissionService) DispatchPermission(dto dto.DispatchPermissionDTO) error {
+	if _, err := p.GroupService.GetGroupById(dto.GroupId); err != nil {
+		return response.NewResponse(10024)
+	}
+	if _, err := p.GetPermissionById(dto.PermissionId); err != nil {
+		return response.NewResponse(10231)
+	}
+	// 校验所在分组是否存在此权限
+	var groupPermissionModel model.GroupPermission
+	if res := p.DB.Where("group_id = ? AND permission_id = ?", dto.GroupId, dto.PermissionId).First(&groupPermissionModel); res.RowsAffected > 0 {
+		return response.NewResponse(10029)
+	}
+	groupPermission := model.GroupPermission{GroupID: dto.GroupId, PermissionID: dto.PermissionId}
+	create := p.DB.Create(&groupPermission)
+	return create.Error
+}
+
+func (p *PermissionService) DispatchPermissions(dispatchPermissionsDTO dto.DispatchPermissionsDTO) error {
+	for _, permissionId := range dispatchPermissionsDTO.PermissionIds {
+		err := p.DispatchPermission(dto.DispatchPermissionDTO{PermissionId: permissionId, GroupId: dispatchPermissionsDTO.GroupId})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *PermissionService) RemovePermissions(permissionsDTO dto.DispatchPermissionsDTO) error {
+	for _, permissionId := range permissionsDTO.PermissionIds {
+		if _, err := p.GetPermissionById(permissionId); err != nil {
+			return response.NewResponse(10231)
+		}
+	}
+	if _, err := p.GroupService.GetGroupById(permissionsDTO.GroupId); err != nil {
+		return response.NewResponse(10024)
+	}
+	db := p.DB.Where("group_id = ? AND permission_id IN ?", permissionsDTO.GroupId, permissionsDTO.PermissionIds).Delete(model.GroupPermission{})
+	return db.Error
 }
 
 func bool2Int(x bool) int {

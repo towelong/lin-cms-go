@@ -17,6 +17,7 @@ import (
 type UserAPI struct {
 	JWT         token.IToken
 	UserService service.IUserService
+	GroupService service.IGroupService
 	Auth        middleware.Auth
 }
 
@@ -64,7 +65,7 @@ func (u *UserAPI) UpdatePassword(ctx *gin.Context) {
 	response.UpdatedVO(ctx, 4)
 }
 
-func (u *UserAPI) Update(ctx *gin.Context)  {
+func (u *UserAPI) Update(ctx *gin.Context) {
 	var userInfoDTO dto.UpdateInfoDTO
 	if err := ctx.ShouldBindJSON(&userInfoDTO); err != nil {
 		ctx.Error(err)
@@ -72,7 +73,7 @@ func (u *UserAPI) Update(ctx *gin.Context)  {
 	}
 	user, _ := ctx.Get("currentUser")
 	currentUser := user.(model.User)
-	if err := u.UserService.UpdateProfile(currentUser.ID, userInfoDTO);err!=nil {
+	if err := u.UserService.UpdateProfile(currentUser.ID, userInfoDTO); err != nil {
 		ctx.Error(err)
 		return
 	}
@@ -86,17 +87,20 @@ func (u *UserAPI) RefreshToken(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, tokens)
 }
 
-func (u *UserAPI) GetInformation(ctx *gin.Context)  {
+func (u *UserAPI) GetInformation(ctx *gin.Context) {
 	user, _ := ctx.Get("currentUser")
 	currentUser := user.(model.User)
 	groups := u.UserService.GetUserGroupByUserId(currentUser.ID)
 	var userInfo vo.UserInfo
 	copier.Copy(&userInfo, &currentUser)
 	copier.CopyWithOption(&userInfo.Groups, &groups, copier.Option{IgnoreEmpty: true})
+	if userInfo.Groups == nil {
+		userInfo.Groups = make([]vo.Group, 0)
+	}
 	ctx.JSON(http.StatusOK, userInfo)
 }
 
-func (u *UserAPI) GetPermissions(ctx *gin.Context)  {
+func (u *UserAPI) GetPermissions(ctx *gin.Context) {
 	user, _ := ctx.Get("currentUser")
 	currentUser := user.(model.User)
 	info, err := u.UserService.GetUserPermissionsInfo(currentUser.ID)
@@ -109,13 +113,7 @@ func (u *UserAPI) GetPermissions(ctx *gin.Context)  {
 
 func (u UserAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 	userRouter := router.NewLinRouter("/user", "用户", routerGroup)
-	userRouter.LinPOST(
-		"Register",
-		"/register",
-		userRouter.Permission("用户注册", true),
-		u.Auth.AdminRequired,
-		u.Register,
-	)
+	userRouter.POST("/register", u.Auth.AdminRequired, u.Register)
 	userRouter.PUT("/change_password", u.Auth.LoginRequired, u.UpdatePassword)
 	userRouter.POST("/login", u.Login)
 	userRouter.PUT("", u.Auth.LoginRequired, u.Update)

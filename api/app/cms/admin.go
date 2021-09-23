@@ -170,86 +170,143 @@ func (admin *AdminAPI) UpdateUser(ctx *gin.Context) {
 	response.UpdatedVO(ctx, 6)
 }
 
+func (admin *AdminAPI) DispatchPermission(ctx *gin.Context) {
+	var dispatchDTO dto.DispatchPermissionDTO
+	if err := ctx.ShouldBindJSON(&dispatchDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	if err := admin.PermissionService.DispatchPermission(dispatchDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	response.CreatedVO(ctx, 9)
+}
+
+func (admin *AdminAPI) DispatchPermissions(ctx *gin.Context) {
+	var dispatchDTO dto.DispatchPermissionsDTO
+	if err := ctx.ShouldBindJSON(&dispatchDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	if err := admin.PermissionService.DispatchPermissions(dispatchDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	response.CreatedVO(ctx, 9)
+}
+
+func (admin *AdminAPI) RemovePermissions(ctx *gin.Context) {
+	var dispatchDTO dto.DispatchPermissionsDTO
+	if err := ctx.ShouldBindJSON(&dispatchDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	if err := admin.PermissionService.RemovePermissions(dispatchDTO); err != nil {
+		ctx.Error(err)
+		return
+	}
+	response.DeletedVO(ctx, 10)
+}
+
 func (admin *AdminAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 	adminRouter := router.NewLinRouter("/admin", "管理员", routerGroup)
 	adminRouter.LinGET(
 		"GetAllPermissions",
 		"/permission",
-		adminRouter.Permission("查询所有可分配的权限", true),
+		adminRouter.Permission("查询所有可分配的权限", false),
 		admin.Auth.AdminRequired,
 		admin.GetAllPermissions,
 	)
 	adminRouter.LinGET(
 		"GetUsers",
 		"/users",
-		adminRouter.Permission("查询所有用户", true),
+		adminRouter.Permission("查询所有用户", false),
 		admin.Auth.AdminRequired,
 		admin.GetUsers,
 	)
 	adminRouter.LinPUT(
 		"ChangeUserPassword",
 		"/user/:id/password",
-		adminRouter.Permission("修改用户密码", true),
+		adminRouter.Permission("修改用户密码", false),
 		admin.Auth.AdminRequired,
 		admin.ChangeUserPassword,
 	)
 	adminRouter.LinDELETE(
 		"DeleteUser",
 		"/user/:id",
-		adminRouter.Permission("删除用户", true),
+		adminRouter.Permission("删除用户", false),
 		admin.Auth.AdminRequired,
 		admin.DeleteUser,
 	)
 	adminRouter.LinPUT(
 		"UpdateUser",
 		"/user/:id",
-		adminRouter.Permission("管理员更新用户信息", true),
+		adminRouter.Permission("管理员更新用户信息", false),
 		admin.Auth.AdminRequired,
 		admin.UpdateUser,
 	)
 	adminRouter.LinGET(
 		"GetGroups",
 		"/group",
-		adminRouter.Permission("查询所有权限组及其权限", true),
+		adminRouter.Permission("查询所有权限组及其权限", false),
 		admin.Auth.AdminRequired,
 		admin.GetGroups,
 	)
 	adminRouter.LinGET(
 		"GetAllGroups",
 		"/group/all",
-		adminRouter.Permission("查询所有权限组", true),
+		adminRouter.Permission("查询所有权限组", false),
 		admin.Auth.AdminRequired,
 		admin.GetAllGroups,
 	)
 	adminRouter.LinPOST(
 		"CreateGroup",
 		"/group",
-		adminRouter.Permission("新建权限组", true),
+		adminRouter.Permission("新建权限组", false),
 		admin.Auth.AdminRequired,
 		admin.CreateGroup,
 	)
 	adminRouter.LinGET(
 		"GetGroup",
 		"/group/:id",
-		adminRouter.Permission("查询一个权限组及其权限", true),
+		adminRouter.Permission("查询一个权限组及其权限", false),
 		admin.Auth.AdminRequired,
 		admin.GetGroup,
 	)
 	adminRouter.LinPUT(
 		"UpdateGroup",
 		"/group/:id",
-		adminRouter.Permission("更新一个权限组", true),
+		adminRouter.Permission("更新一个权限组", false),
 		admin.Auth.AdminRequired,
 		admin.UpdateGroup,
 	)
 	adminRouter.LinDELETE(
 		"DeleteGroup",
 		"/group/:id",
-		adminRouter.Permission("删除一个权限组", true),
+		adminRouter.Permission("删除一个权限组", false),
 		admin.Auth.AdminRequired,
 		admin.DeleteGroup,
 	)
-	// TODO: 分配单个权限
-	// TODO: 分配多个权限
-	// TODO: 删除多个权限
+	adminRouter.LinPOST(
+		"DispatchPermission",
+		"/permission/dispatch",
+		adminRouter.Permission("分配单个权限", false),
+		admin.Auth.AdminRequired,
+		admin.DispatchPermission,
+	)
+	adminRouter.LinPOST(
+		"DispatchPermissions",
+		"/permission/dispatch/batch",
+		adminRouter.Permission("分配多个权限", false),
+		admin.Auth.AdminRequired,
+		admin.DispatchPermissions,
+	)
+	adminRouter.LinDELETE(
+		"RemovePermissions",
+		"/permission/remove",
+		adminRouter.Permission("删除多个权限", false),
+		admin.Auth.AdminRequired,
+		admin.RemovePermissions,
+	)
 }

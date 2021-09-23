@@ -49,7 +49,9 @@ func initServer(ctx context.Context, configs config.Config, injector *internal.I
 // 监听新增权限
 func permissionHandleListener(service service.IPermissionService) {
 	for _, v := range router.RouteMetaInfo {
-		service.CreateNewPermission(v.Module, v.Permission, v.Mount)
+		if v.Mount {
+			service.CreateNewPermission(v.Module, v.Permission, v.Mount)
+		}
 	}
 }
 
@@ -65,7 +67,6 @@ func removePermissionListener(service service.IPermissionService) {
 	for _, permission := range permissions {
 		for _, routeMeta := range router.RouteMetaInfo {
 			var stayedInMeta = permission.Module == routeMeta.Module && permission.Name == routeMeta.Permission
-
 			if stayedInMeta {
 				matchID = append(matchID, permission.ID)
 				break
