@@ -53,7 +53,7 @@ func (p *PermissionService) GetPermissionById(id int) (model.Permission, error) 
 }
 
 func (p *PermissionService) GetPermissions() (permissions []*model.Permission, err error) {
-	db := p.DB.Find(&permissions)
+	db := p.DB.Where("mount <> ?", 0).Find(&permissions)
 	if db.RowsAffected > 0 {
 		return permissions, nil
 	}

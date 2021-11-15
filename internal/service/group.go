@@ -31,6 +31,7 @@ type IGroupService interface {
 type GroupService struct {
 	DB *gorm.DB
 }
+
 func (g *GroupService) GetRootGroup() (group model.Group) {
 	err := g.DB.Where("level = ?", Root).First(&group).Error
 	if err != nil {
@@ -38,7 +39,6 @@ func (g *GroupService) GetRootGroup() (group model.Group) {
 	}
 	return group
 }
-
 
 func (g *GroupService) GetGroupByLevel(level int) (group *model.Group, err error) {
 	res := g.DB.Where("level = ?", level).First(&group)
@@ -69,8 +69,10 @@ func (g *GroupService) GetGroupById(id int) (groupInfo vo.GroupInfo, err error) 
 	for _, groupPermission := range groupPermissions {
 		ids = append(ids, groupPermission.PermissionID)
 	}
-	var permissions []model.Permission
-	g.DB.Find(&permissions, ids)
+	var permissions = make([]model.Permission, 0)
+	if len(ids) > 0 {
+		g.DB.Find(&permissions, ids)
+	}
 	copier.Copy(&groupInfo.Permissions, &permissions)
 	copier.Copy(&groupInfo, &group)
 	return groupInfo, nil
@@ -155,7 +157,7 @@ func (g *GroupService) GetPageGroups(page dto.BasePage) *vo.Page {
 	var newGroups = make([]vo.Group, 0)
 	newPage := vo.NewPage(page.Page, page.Count)
 	rootLevel, _ := g.GetGroupByLevel(Root)
-	db := g.DB.Limit(page.Count).Offset(page.Page * page.Count).Where("id <> ?", rootLevel.ID).Find(&groups)
+	db := g.DB.Limit(page.Count).Offset(page.Page*page.Count).Where("id <> ?", rootLevel.ID).Find(&groups)
 	newPage.Total = int(db.RowsAffected)
 	copier.CopyWithOption(&newGroups, &groups, copier.Option{IgnoreEmpty: true})
 	newPage.Items = newGroups
