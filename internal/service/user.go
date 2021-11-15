@@ -102,7 +102,7 @@ func (u UserService) GetUserPageByGroupId(groupId int, page int, count int) (*vo
 		if err != nil {
 			fmt.Println(err)
 		}
-		user.Group = append(user.Group, groupsVo...)
+		user.Groups = append(user.Groups, groupsVo...)
 	}
 	p.SetItems(usersVo)
 	p.SetTotal(int(db.RowsAffected))

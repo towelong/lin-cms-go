@@ -36,6 +36,20 @@ func (m *MockIUserService) EXPECT() *MockIUserServiceMockRecorder {
 	return m.recorder
 }
 
+// ChangePassword mocks base method.
+func (m *MockIUserService) ChangePassword(arg0 int, arg1 dto.ChangePasswordDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangePassword", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangePassword indicates an expected call of ChangePassword.
+func (mr *MockIUserServiceMockRecorder) ChangePassword(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangePassword", reflect.TypeOf((*MockIUserService)(nil).ChangePassword), arg0, arg1)
+}
+
 // ChangeUserPassword mocks base method.
 func (m *MockIUserService) ChangeUserPassword(arg0 int, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -136,6 +150,20 @@ func (mr *MockIUserServiceMockRecorder) GetUserByUsername(arg0 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByUsername", reflect.TypeOf((*MockIUserService)(nil).GetUserByUsername), arg0)
 }
 
+// GetUserGroupByUserId mocks base method.
+func (m *MockIUserService) GetUserGroupByUserId(arg0 int) []model.Group {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserGroupByUserId", arg0)
+	ret0, _ := ret[0].([]model.Group)
+	return ret0
+}
+
+// GetUserGroupByUserId indicates an expected call of GetUserGroupByUserId.
+func (mr *MockIUserServiceMockRecorder) GetUserGroupByUserId(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserGroupByUserId", reflect.TypeOf((*MockIUserService)(nil).GetUserGroupByUserId), arg0)
+}
+
 // GetUserPageByGroupId mocks base method.
 func (m *MockIUserService) GetUserPageByGroupId(arg0, arg1, arg2 int) (*vo.Page, error) {
 	m.ctrl.T.Helper()
@@ -151,6 +179,21 @@ func (mr *MockIUserServiceMockRecorder) GetUserPageByGroupId(arg0, arg1, arg2 in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserPageByGroupId", reflect.TypeOf((*MockIUserService)(nil).GetUserPageByGroupId), arg0, arg1, arg2)
 }
 
+// GetUserPermissionsInfo mocks base method.
+func (m *MockIUserService) GetUserPermissionsInfo(arg0 int) (vo.UserPermissionInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserPermissionsInfo", arg0)
+	ret0, _ := ret[0].(vo.UserPermissionInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserPermissionsInfo indicates an expected call of GetUserPermissionsInfo.
+func (mr *MockIUserServiceMockRecorder) GetUserPermissionsInfo(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserPermissionsInfo", reflect.TypeOf((*MockIUserService)(nil).GetUserPermissionsInfo), arg0)
+}
+
 // IsAdmin mocks base method.
 func (m *MockIUserService) IsAdmin(arg0 int) (bool, error) {
 	m.ctrl.T.Helper()
@@ -164,6 +207,34 @@ func (m *MockIUserService) IsAdmin(arg0 int) (bool, error) {
 func (mr *MockIUserServiceMockRecorder) IsAdmin(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAdmin", reflect.TypeOf((*MockIUserService)(nil).IsAdmin), arg0)
+}
+
+// UpdateProfile mocks base method.
+func (m *MockIUserService) UpdateProfile(arg0 int, arg1 dto.UpdateInfoDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateProfile", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateProfile indicates an expected call of UpdateProfile.
+func (mr *MockIUserServiceMockRecorder) UpdateProfile(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProfile", reflect.TypeOf((*MockIUserService)(nil).UpdateProfile), arg0, arg1)
+}
+
+// UpdateUserInfo mocks base method.
+func (m *MockIUserService) UpdateUserInfo(arg0 int, arg1 dto.UpdateGroupsDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserInfo", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserInfo indicates an expected call of UpdateUserInfo.
+func (mr *MockIUserServiceMockRecorder) UpdateUserInfo(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserInfo", reflect.TypeOf((*MockIUserService)(nil).UpdateUserInfo), arg0, arg1)
 }
 
 // VerifyUser mocks base method.

@@ -27,6 +27,7 @@ type Router struct {
 }
 
 func (r *Router) RegisterAPI(app *gin.Engine) {
+	app.HandleMethodNotAllowed = true
 
 	app.NoMethod(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, response.UnifyResponse(10080, ctx))

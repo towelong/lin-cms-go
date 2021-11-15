@@ -12,7 +12,7 @@ import (
 var MasterDB *gorm.DB
 
 func InitDB() (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/lin-cms?charset=utf8mb4&parseTime=True&loc=Local",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/lin-cms-test?charset=utf8mb4&parseTime=True&loc=Local",
 		viper.GetString("mysql.account"),
 		viper.GetString("mysql.password"),
 		viper.GetString("mysql.addr"),

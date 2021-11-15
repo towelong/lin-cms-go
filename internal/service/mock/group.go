@@ -8,7 +8,9 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	dto "github.com/towelong/lin-cms-go/internal/domain/dto"
 	model "github.com/towelong/lin-cms-go/internal/domain/model"
+	vo "github.com/towelong/lin-cms-go/internal/domain/vo"
 	router "github.com/towelong/lin-cms-go/pkg/router"
 )
 
@@ -77,6 +79,63 @@ func (mr *MockIGroupServiceMockRecorder) CheckGroupsValid(arg0 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckGroupsValid", reflect.TypeOf((*MockIGroupService)(nil).CheckGroupsValid), arg0)
 }
 
+// CreateGroup mocks base method.
+func (m *MockIGroupService) CreateGroup(arg0 dto.NewGroupDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateGroup", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateGroup indicates an expected call of CreateGroup.
+func (mr *MockIGroupServiceMockRecorder) CreateGroup(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGroup", reflect.TypeOf((*MockIGroupService)(nil).CreateGroup), arg0)
+}
+
+// DeleteGroup mocks base method.
+func (m *MockIGroupService) DeleteGroup(arg0 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGroup", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockIGroupServiceMockRecorder) DeleteGroup(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockIGroupService)(nil).DeleteGroup), arg0)
+}
+
+// GetAllGroups mocks base method.
+func (m *MockIGroupService) GetAllGroups() []vo.Group {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllGroups")
+	ret0, _ := ret[0].([]vo.Group)
+	return ret0
+}
+
+// GetAllGroups indicates an expected call of GetAllGroups.
+func (mr *MockIGroupServiceMockRecorder) GetAllGroups() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllGroups", reflect.TypeOf((*MockIGroupService)(nil).GetAllGroups))
+}
+
+// GetGroupById mocks base method.
+func (m *MockIGroupService) GetGroupById(arg0 int) (vo.GroupInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGroupById", arg0)
+	ret0, _ := ret[0].(vo.GroupInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGroupById indicates an expected call of GetGroupById.
+func (mr *MockIGroupServiceMockRecorder) GetGroupById(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupById", reflect.TypeOf((*MockIGroupService)(nil).GetGroupById), arg0)
+}
+
 // GetGroupByLevel mocks base method.
 func (m *MockIGroupService) GetGroupByLevel(arg0 int) (*model.Group, error) {
 	m.ctrl.T.Helper()
@@ -90,6 +149,49 @@ func (m *MockIGroupService) GetGroupByLevel(arg0 int) (*model.Group, error) {
 func (mr *MockIGroupServiceMockRecorder) GetGroupByLevel(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupByLevel", reflect.TypeOf((*MockIGroupService)(nil).GetGroupByLevel), arg0)
+}
+
+// GetGroupByName mocks base method.
+func (m *MockIGroupService) GetGroupByName(arg0 string) (model.Group, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGroupByName", arg0)
+	ret0, _ := ret[0].(model.Group)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGroupByName indicates an expected call of GetGroupByName.
+func (mr *MockIGroupServiceMockRecorder) GetGroupByName(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupByName", reflect.TypeOf((*MockIGroupService)(nil).GetGroupByName), arg0)
+}
+
+// GetPageGroups mocks base method.
+func (m *MockIGroupService) GetPageGroups(arg0 dto.BasePage) *vo.Page {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPageGroups", arg0)
+	ret0, _ := ret[0].(*vo.Page)
+	return ret0
+}
+
+// GetPageGroups indicates an expected call of GetPageGroups.
+func (mr *MockIGroupServiceMockRecorder) GetPageGroups(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPageGroups", reflect.TypeOf((*MockIGroupService)(nil).GetPageGroups), arg0)
+}
+
+// GetRootGroup mocks base method.
+func (m *MockIGroupService) GetRootGroup() model.Group {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRootGroup")
+	ret0, _ := ret[0].(model.Group)
+	return ret0
+}
+
+// GetRootGroup indicates an expected call of GetRootGroup.
+func (mr *MockIGroupServiceMockRecorder) GetRootGroup() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRootGroup", reflect.TypeOf((*MockIGroupService)(nil).GetRootGroup))
 }
 
 // GetUserGroupByUserId mocks base method.
@@ -119,4 +221,18 @@ func (m *MockIGroupService) GetUserHasPermission(arg0 int, arg1 router.Meta) boo
 func (mr *MockIGroupServiceMockRecorder) GetUserHasPermission(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserHasPermission", reflect.TypeOf((*MockIGroupService)(nil).GetUserHasPermission), arg0, arg1)
+}
+
+// UpdateGroup mocks base method.
+func (m *MockIGroupService) UpdateGroup(arg0 int, arg1 dto.UpdateGroupDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateGroup", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateGroup indicates an expected call of UpdateGroup.
+func (mr *MockIGroupServiceMockRecorder) UpdateGroup(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroup", reflect.TypeOf((*MockIGroupService)(nil).UpdateGroup), arg0, arg1)
 }

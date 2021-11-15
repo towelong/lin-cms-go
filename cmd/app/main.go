@@ -10,7 +10,7 @@ import (
 
 func main() {
 	validator.InitValidator()
-	configs, err := config.LoadConfig("./config")
+	configs, err := config.LoadConfig("../../config")
 	if err != nil {
 		log.Fatalf("load config err: %v", err)
 	}

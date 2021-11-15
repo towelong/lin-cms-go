@@ -8,8 +8,8 @@ import (
 
 func InitEngine(r router.IRouter) *gin.Engine {
 	app := gin.Default()
-	app.Use(middleware.CORS)
 	app.Use(middleware.ErrorHandler)
+	app.Use(middleware.CORS)
 	r.RegisterAPI(app)
 	return app
 }
