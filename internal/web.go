@@ -7,9 +7,11 @@ import (
 )
 
 func InitEngine(r router.IRouter) *gin.Engine {
-	app := gin.Default()
+	app := gin.New()
+	app.Use(gin.Recovery())
 	app.Use(middleware.ErrorHandler)
 	app.Use(middleware.CORS)
+	app.Use(middleware.Logger)
 	r.RegisterAPI(app)
 	return app
 }

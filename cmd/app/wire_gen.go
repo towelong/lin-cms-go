@@ -55,12 +55,20 @@ func NewInjector() (*internal.Injector, error) {
 		GroupService: serviceGroupService,
 		Auth:         auth,
 	}
+	logService := &service.LogService{
+		DB: gormDB,
+	}
+	logAPI := &cms.LogAPI{
+		LogService: logService,
+		Auth:       auth,
+	}
 	bookAPI := &v1.BookAPI{
 		Auth: auth,
 	}
 	routerRouter := &router.Router{
 		AdminAPI: adminAPI,
 		UserAPI:  userAPI,
+		LogAPI:   logAPI,
 		BookAPI:  bookAPI,
 	}
 	engine := internal.InitEngine(routerRouter)

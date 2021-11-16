@@ -11,4 +11,7 @@ var Set = wire.NewSet(
 
 	wire.Struct(new(PermissionService), "*"),
 	wire.Bind(new(IPermissionService), new(*PermissionService)),
+
+	wire.Struct(new(LogService), "*"),
+	wire.Bind(new(ILogService), new(*LogService)),
 )

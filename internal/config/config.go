@@ -33,11 +33,11 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.AutomaticEnv()
 	err = viper.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("parse config file: %s \n", err))
+		panic(fmt.Errorf("parse config file: %s ", err))
 	}
-	err = viper.UnmarshalKey("server", &config.Server)
-	err = viper.UnmarshalKey("mysql", &config.MySQL)
-	err = viper.UnmarshalKey("lin", &config.Lin)
-	err = viper.UnmarshalKey("cms", &config.Lin.CMS)
+	viper.UnmarshalKey("server", &config.Server)
+	viper.UnmarshalKey("mysql", &config.MySQL)
+	viper.UnmarshalKey("lin", &config.Lin)
+	viper.UnmarshalKey("cms", &config.Lin.CMS)
 	return
 }

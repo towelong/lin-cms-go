@@ -202,7 +202,7 @@ func (u UserService) DeleteUser(id int) error {
 }
 
 func (u *UserService) CreateUser(dto dto.RegisterDTO) error {
-	user, err := u.GetUserByUsername(dto.Username)
+	user, _ := u.GetUserByUsername(dto.Username)
 	// 若记录存在
 	if user.ID > 0 {
 		return response.NewResponse(10071)
@@ -215,7 +215,7 @@ func (u *UserService) CreateUser(dto dto.RegisterDTO) error {
 		}
 	}
 	// 开启事务
-	err = u.DB.Transaction(func(tx *gorm.DB) error {
+	err := u.DB.Transaction(func(tx *gorm.DB) error {
 		var user model.User
 		copier.Copy(&user, &dto)
 		if err := tx.Select("Username", "Email").Create(&user).Error; err != nil {
@@ -312,8 +312,10 @@ func (u *UserService) UpdateProfile(id int, dto dto.UpdateInfoDTO) error {
 }
 
 func (u *UserService) GetUserGroupByUserId(id int) (groups []model.Group) {
-	groups = make([]model.Group, 0)
 	groups, _ = u.GroupService.GetUserGroupByUserId(id)
+	if len(groups) == 0 {
+		groups = make([]model.Group, 0)
+	}
 	for i, group := range groups {
 		if group.ID == u.GroupService.GetRootGroup().ID {
 			groups = append(groups[:i], groups[i+1:]...)
