@@ -11,10 +11,10 @@ mysql:
 lin:
   cms:
     # 开启行为日志记录（logger）
-    logger-enabled: true
+    loggerEnabled: true
     # access jwt 过期时间，3600s 一个小时
-    token-access-expire: 3600
+    tokenAccessExpire: 3600
     # refresh jwt 过期时间，2592000s 一个月
-    token-refresh-expire: 2592000
+    tokenRefreshExpire: 2592000
     # 令牌 secret
-    token-secret: x88Wf0991079889x8796a0Ac68f9ecJJU17c5Vbe8beod7d8d3e695*4
+    tokenSecret: x88Wf0991079889x8796a0Ac68f9ecJJU17c5Vbe8beod7d8d3e695*4
