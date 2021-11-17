@@ -43,20 +43,24 @@ func NewInjector() (*internal.Injector, error) {
 		UserService:  userService,
 		GroupService: serviceGroupService,
 	}
+	logService := &service.LogService{
+		DB: gormDB,
+	}
+	logs := middleware.Logs{
+		LogService: logService,
+	}
 	adminAPI := &cms.AdminAPI{
 		PermissionService: permissionService,
 		UserService:       userService,
 		GroupService:      serviceGroupService,
 		Auth:              auth,
+		Logs:              logs,
 	}
 	userAPI := &cms.UserAPI{
 		JWT:          iToken,
 		UserService:  userService,
 		GroupService: serviceGroupService,
 		Auth:         auth,
-	}
-	logService := &service.LogService{
-		DB: gormDB,
 	}
 	logAPI := &cms.LogAPI{
 		LogService: logService,

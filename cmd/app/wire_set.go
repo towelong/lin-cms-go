@@ -20,4 +20,5 @@ var set = wire.NewSet(
 	jwt.Set,
 	service.Set,
 	middleware.AuthSet,
+	middleware.LogSet,
 )

@@ -18,6 +18,7 @@ type AdminAPI struct {
 	UserService       service.IUserService
 	GroupService      service.IGroupService
 	Auth              middleware.Auth
+	middleware.Logs
 }
 
 func (admin *AdminAPI) GetAllPermissions(ctx *gin.Context) {
@@ -267,6 +268,7 @@ func (admin *AdminAPI) RegisterServer(routerGroup *gin.RouterGroup) {
 		"/group",
 		adminRouter.Permission("新建权限组", false),
 		admin.Auth.AdminRequired,
+		admin.Logger("{user.username}新建了一个权限组"),
 		admin.CreateGroup,
 	)
 	adminRouter.LinGET(

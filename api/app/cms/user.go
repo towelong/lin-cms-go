@@ -15,10 +15,10 @@ import (
 )
 
 type UserAPI struct {
-	JWT         token.IToken
-	UserService service.IUserService
+	JWT          token.IToken
+	UserService  service.IUserService
 	GroupService service.IGroupService
-	Auth        middleware.Auth
+	Auth         middleware.Auth
 }
 
 func (u *UserAPI) Register(ctx *gin.Context) {
