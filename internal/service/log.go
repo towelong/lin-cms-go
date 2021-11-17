@@ -12,15 +12,20 @@ type ILogService interface {
 	GetLogs(dto dto.BasePage) (page *vo.Page, err error)
 	SearchLogs(dto dto.SearchLogDTO) (page *vo.Page, err error)
 	GetUsers(dto dto.BasePage) (page *vo.Page, err error)
+	CreateLog(dto model.Log) error
 }
 
 type LogService struct {
 	DB *gorm.DB
 }
 
+func (l *LogService) CreateLog(dto model.Log) error {
+	return l.DB.Omit("create_time", "update_time").Create(&dto).Error
+}
+
 func (l *LogService) GetLogs(dto dto.BasePage) (page *vo.Page, err error) {
 	var logs = make([]model.Log, 0)
-	db := l.DB.Limit(dto.Count).Offset(dto.Page * dto.Count).Find(&logs)
+	db := l.DB.Order("create_time desc").Limit(dto.Count).Offset(dto.Page * dto.Count).Find(&logs)
 	page = vo.NewPage(dto.Page, dto.Count)
 	page.SetItems(logs)
 	page.SetTotal(int(db.RowsAffected))
@@ -29,7 +34,7 @@ func (l *LogService) GetLogs(dto dto.BasePage) (page *vo.Page, err error) {
 
 func (l *LogService) SearchLogs(dto dto.SearchLogDTO) (page *vo.Page, err error) {
 	var logs = make([]model.Log, 0)
-	db := l.DB.Limit(dto.Count).Offset(dto.Page * dto.Count)
+	db := l.DB.Order("create_time desc").Limit(dto.Count).Offset(dto.Page * dto.Count)
 	if dto.Keyword != "" {
 		keyword := "%" + dto.Keyword + "%"
 		db.Where("message like ?", keyword)
@@ -54,10 +59,10 @@ func (l *LogService) GetUsers(dto dto.BasePage) (page *vo.Page, err error) {
 		logs  []model.Log
 		users = make([]string, 0)
 	)
-	db := l.DB.Limit(dto.Count).Offset(dto.Page * dto.Count).Find(&logs)
-	for _, log := range logs {
-		users = append(users, log.Username)
-	}
+	db := l.DB.Model(&logs).
+		Distinct("username").
+		Limit(dto.Count).Offset(dto.Page*dto.Count).
+		Pluck("username", &users)
 	page = vo.NewPage(dto.Page, dto.Count)
 	page.SetItems(users)
 	page.SetTotal(int(db.RowsAffected))

@@ -84,7 +84,7 @@ func (u UserService) GetUserPageByGroupId(groupId int, page int, count int) (*vo
 		p.SetItems(users)
 		return p, nil
 	}
-	db := u.DB.Limit(count).Offset(page*count).Find(&users, userIds)
+	db := u.DB.Order("create_time desc").Limit(count).Offset(page*count).Find(&users, userIds)
 	if db.Error != nil {
 		return p, err
 	}
