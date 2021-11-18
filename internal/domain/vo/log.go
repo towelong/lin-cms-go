@@ -1,6 +1,7 @@
 package vo
 
 type LogVo struct {
+	ID         int    `json:"id"`
 	Message    string `json:"message"`
 	UserID     int    `json:"user_id"`
 	Username   string `json:"username"`

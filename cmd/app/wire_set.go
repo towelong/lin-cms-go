@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 	"github.com/towelong/lin-cms-go/api/app"
 	"github.com/towelong/lin-cms-go/internal"
+	"github.com/towelong/lin-cms-go/internal/extension/file"
 	"github.com/towelong/lin-cms-go/internal/middleware"
 	"github.com/towelong/lin-cms-go/internal/pkg/db"
 	"github.com/towelong/lin-cms-go/internal/pkg/jwt"
@@ -21,4 +22,5 @@ var set = wire.NewSet(
 	service.Set,
 	middleware.AuthSet,
 	middleware.LogSet,
+	file.Set,
 )

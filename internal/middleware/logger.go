@@ -42,14 +42,13 @@ func Log(ctx *gin.Context) {
 	data, _ := ctx.GetRawData()
 	query := ctx.Copy().Request.URL.RawQuery
 	ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(data)) // 重新赋值
+	contentType := ctx.Copy().ContentType()
 	ctx.Next()
 	costs := time.Since(start)
 	body := string(data)
-	if body == "" {
+	if body == "" || strings.HasPrefix(contentType, "multipart") {
 		body = "{}"
 	}
-	logger := log.NewCustomerLogger()
-	defer logger.Sync()
 	msg := fmt.Sprintf(`%s [%s] -> [%s] from: %s costs: %dms
 data: {
 	params: %s,
@@ -63,7 +62,7 @@ data: {
 		fomatterQuery(query),
 		body,
 	)
-	logger.Info(msg)
+	log.Logger.Info(msg)
 }
 
 // 行为日志

@@ -1,11 +1,26 @@
 package log
 
 import (
+	"path"
+
+	"github.com/spf13/viper"
+	"github.com/towelong/lin-cms-go/pkg"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-func NewCustomerLogger() *zap.Logger {
+var Logger *zap.Logger
+
+func NewCustomerLogger() {
+	stdout := []string{"stdout"}
+	stderr := []string{"stderr"}
+	if viper.GetString("dev") == "prod" {
+		logPath, _ := pkg.CreateDirAndFileForCurrentTime("logs", "2006-01-02")
+		stdLog := path.Join(logPath, "/log.txt")
+		errorLog := path.Join(logPath, "/errLog.txt")
+		stdout = append(stdout, stdLog)
+		stderr = append(stderr, errorLog)
+	}
 	config := zap.Config{
 		Level:       zap.NewAtomicLevelAt(zap.DebugLevel),
 		Development: true,
@@ -13,9 +28,9 @@ func NewCustomerLogger() *zap.Logger {
 		EncoderConfig: zapcore.EncoderConfig{
 			MessageKey: "msg",
 		},
-		OutputPaths:      []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
+		OutputPaths:      stdout,
+		ErrorOutputPaths: stderr,
 	}
-	log, _ := config.Build()
-	return log
+	Logger, _ = config.Build()
+	defer Logger.Sync()
 }

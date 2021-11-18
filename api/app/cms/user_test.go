@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/jianfengye/collection"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -34,10 +33,7 @@ type testUserAPI struct {
 
 func initUserService(t *testing.T) *testUserAPI {
 	validator.InitValidator()
-	_, err := config.LoadConfig("../../../config")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	config.LoadConfig()
 	ctrl := gomock.NewController(t)
 	userService := mockservice.NewMockIUserService(ctrl)
 	groupService := mockservice.NewMockIGroupService(ctrl)

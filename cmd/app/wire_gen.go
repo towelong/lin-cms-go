@@ -9,6 +9,7 @@ import (
 	"github.com/towelong/lin-cms-go/api/app/cms"
 	"github.com/towelong/lin-cms-go/api/app/v1"
 	"github.com/towelong/lin-cms-go/internal"
+	"github.com/towelong/lin-cms-go/internal/extension/file"
 	"github.com/towelong/lin-cms-go/internal/middleware"
 	"github.com/towelong/lin-cms-go/internal/pkg/db"
 	"github.com/towelong/lin-cms-go/internal/pkg/jwt"
@@ -66,6 +67,16 @@ func NewInjector() (*internal.Injector, error) {
 		LogService: logService,
 		Auth:       auth,
 	}
+	fileService := &service.FileService{
+		DB: gormDB,
+	}
+	localUploader := &file.LocalUploader{
+		FileService: fileService,
+	}
+	fileAPI := &cms.FileAPI{
+		LocalUploader: localUploader,
+		Auth:          auth,
+	}
 	bookAPI := &v1.BookAPI{
 		Auth: auth,
 	}
@@ -73,6 +84,7 @@ func NewInjector() (*internal.Injector, error) {
 		AdminAPI: adminAPI,
 		UserAPI:  userAPI,
 		LogAPI:   logAPI,
+		FileAPI:  fileAPI,
 		BookAPI:  bookAPI,
 	}
 	engine := internal.InitEngine(routerRouter)
