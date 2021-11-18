@@ -11,4 +11,5 @@ var APISet = wire.NewSet(
 	wire.Struct(new(cms.UserAPI), "*"),
 	wire.Struct(new(v1.BookAPI), "*"),
 	wire.Struct(new(cms.LogAPI), "*"),
+	wire.Struct(new(cms.FileAPI), "*"),
 )

@@ -1,8 +1,11 @@
 package cms
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
+	"github.com/spf13/viper"
 	"github.com/towelong/lin-cms-go/internal/domain/dto"
 	"github.com/towelong/lin-cms-go/internal/domain/model"
 	"github.com/towelong/lin-cms-go/internal/domain/vo"
@@ -11,7 +14,6 @@ import (
 	"github.com/towelong/lin-cms-go/pkg/response"
 	"github.com/towelong/lin-cms-go/pkg/router"
 	"github.com/towelong/lin-cms-go/pkg/token"
-	"net/http"
 )
 
 type UserAPI struct {
@@ -97,6 +99,9 @@ func (u *UserAPI) GetInformation(ctx *gin.Context) {
 	if userInfo.Groups == nil {
 		userInfo.Groups = make([]vo.Group, 0)
 	}
+	if userInfo.Avatar != "" {
+		userInfo.Avatar = viper.GetString("lin.file.domain") + viper.GetString("lin.file.storeDir") + userInfo.Avatar
+	}
 	ctx.JSON(http.StatusOK, userInfo)
 }
 
@@ -104,6 +109,9 @@ func (u *UserAPI) GetPermissions(ctx *gin.Context) {
 	user, _ := ctx.Get("currentUser")
 	currentUser := user.(model.User)
 	info, err := u.UserService.GetUserPermissionsInfo(currentUser.ID)
+	if info.Avatar != "" {
+		info.Avatar = viper.GetString("lin.file.domain") + viper.GetString("lin.file.storeDir") + info.Avatar
+	}
 	if err != nil {
 		ctx.Error(err)
 		return

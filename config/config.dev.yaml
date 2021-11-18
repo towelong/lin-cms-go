@@ -3,6 +3,7 @@ server:
   pprof_port: 2702
 
 mysql:
+  database: lin-cms-test
   port: 3306
   account: root
   password: 123456789
@@ -18,3 +19,19 @@ lin:
     tokenRefreshExpire: 2592000
     # 令牌 secret
     tokenSecret: x88Wf0991079889x8796a0Ac68f9ecJJU17c5Vbe8beod7d8d3e695*4
+  file:
+    # 文件服务域名
+    domain: http://localhost:5000/
+    # 排除文件类型
+    exclude:
+    # 包括文件类型
+    include:
+      - .jpg
+      - .png
+      - .jpeg
+    # 文件最大数量
+    nums: 10
+    # 单个文件最大体积
+    singleLimit: 2MB
+    # 本地文件保存位置
+    storeDir: assets/

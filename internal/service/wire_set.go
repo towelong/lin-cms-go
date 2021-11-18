@@ -14,4 +14,7 @@ var Set = wire.NewSet(
 
 	wire.Struct(new(LogService), "*"),
 	wire.Bind(new(ILogService), new(*LogService)),
+
+	wire.Struct(new(FileService), "*"),
+	wire.Bind(new(IFileService), new(*FileService)),
 )

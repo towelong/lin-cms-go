@@ -24,6 +24,7 @@ type Router struct {
 	AdminAPI *cms.AdminAPI
 	UserAPI  *cms.UserAPI
 	LogAPI   *cms.LogAPI
+	FileAPI  *cms.FileAPI
 	BookAPI  *v1.BookAPI
 }
 
@@ -43,6 +44,7 @@ func (r *Router) RegisterAPI(app *gin.Engine) {
 		r.UserAPI.RegisterServer(cmsGroup)
 		r.AdminAPI.RegisterServer(cmsGroup)
 		r.LogAPI.RegisterServer(cmsGroup)
+		r.FileAPI.RegisterServer(cmsGroup)
 	}
 
 	v1Group := app.Group("/v1")
