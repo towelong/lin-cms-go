@@ -26,6 +26,10 @@ func (l LocalUploader) Upload(ctx *gin.Context) ([]vo.FileVo, error) {
 		return fileVos, response.NewResponse(10190)
 	}
 	files := form.File["file"]
+	d := DefaultUploader{}
+	if err := d.IsValid(files); err != nil {
+		return fileVos, err
+	}
 	for _, file := range files {
 		md5 := pkg.GetFileMd5(file)
 		fileInDB, err := l.FileService.GetFileByMD5(md5)
