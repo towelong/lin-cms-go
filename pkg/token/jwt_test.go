@@ -128,7 +128,7 @@ func TestInvalidToken(t *testing.T) {
 }
 
 func TestDoubleJWT_GenerateToken(t *testing.T) {
-	conf, _ := config.LoadConfig("../../config")
+	conf := config.LoadConfig()
 	jwt := NewDoubleJWT(conf.Lin.CMS.TokenAccessExpire, conf.Lin.CMS.TokenRefreshExpire, conf.Lin.CMS.TokenSecret)
 	token := jwt.GenerateAccessToken(1)
 	//assert.Equal(t, "ss", token)

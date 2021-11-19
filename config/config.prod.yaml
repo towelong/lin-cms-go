@@ -32,6 +32,6 @@ lin:
     # 文件最大数量
     nums: 10
     # 单个文件最大体积
-    singleLimit: 2MB
+    singleLimit: 2 * 1024 * 1024
     # 本地文件保存位置
     storeDir: assets/

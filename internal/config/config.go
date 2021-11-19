@@ -34,7 +34,7 @@ type Config struct {
 			Exclude     []string `mapstructure:"exclude"`
 			Include     []string `mapstructure:"include"`
 			Nums        int      `mapstructure:"nums"`
-			SingleLimit int      `mapstructure:"singleLimit"`
+			SingleLimit int64    `mapstructure:"singleLimit"`
 			StoreDir    string   `mapstructure:"storeDir"`
 		}
 	}

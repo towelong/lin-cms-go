@@ -1,10 +1,15 @@
 package file
 
 import (
+	"mime/multipart"
+	"strings"
+
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"github.com/towelong/lin-cms-go/internal/domain/vo"
 	"github.com/towelong/lin-cms-go/internal/pkg/log"
 	"github.com/towelong/lin-cms-go/pkg"
+	"github.com/towelong/lin-cms-go/pkg/response"
 )
 
 type FileConfig struct {
@@ -27,4 +32,29 @@ func (d DefaultUploader) GetStorePath(fileName string) string {
 		log.Logger.Error(err.Error())
 	}
 	return storeDir
+}
+
+func (d DefaultUploader) IsValid(files []*multipart.FileHeader) error {
+	if len(files) > viper.GetInt("lin.file.nums") {
+		return response.NewResponse(10121)
+	}
+	for _, file := range files {
+		if file.Size > viper.GetInt64("lin.file.singleLimit") {
+			return response.NewResponse(10110)
+		}
+		extension := "." + strings.Split(file.Filename, ".")[1]
+		include := viper.GetStringSlice("lin.file.include")
+		flag := false
+		for _, i := range include {
+			if i == extension {
+				flag = true
+			}
+		}
+		if !flag {
+			return response.NewResponse(10130)
+		}
+
+	}
+
+	return nil
 }
