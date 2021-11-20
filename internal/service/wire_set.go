@@ -17,4 +17,7 @@ var Set = wire.NewSet(
 
 	wire.Struct(new(FileService), "*"),
 	wire.Bind(new(IFileService), new(*FileService)),
+
+	wire.Struct(new(BookService), "*"),
+	wire.Bind(new(IBookService), new(*BookService)),
 )

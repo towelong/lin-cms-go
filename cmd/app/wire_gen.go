@@ -77,8 +77,12 @@ func NewInjector() (*internal.Injector, error) {
 		LocalUploader: localUploader,
 		Auth:          auth,
 	}
+	bookService := &service.BookService{
+		DB: gormDB,
+	}
 	bookAPI := &v1.BookAPI{
-		Auth: auth,
+		Auth:        auth,
+		BookService: bookService,
 	}
 	routerRouter := &router.Router{
 		AdminAPI: adminAPI,

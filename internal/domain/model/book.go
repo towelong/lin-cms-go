@@ -5,7 +5,7 @@ type Book struct {
 	Title   string `json:"title"`
 	Author  string `json:"author"`
 	Summary string `json:"summary"`
-	Img     string `json:"img"`
+	Image   string `json:"image"`
 }
 
 // TableName 覆盖gorm的命名策略

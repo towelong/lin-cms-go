@@ -16,10 +16,10 @@ func InitEngine(r router.IRouter) *gin.Engine {
 	}
 	app := gin.New()
 	app.Static("/assets", path.Join(pkg.GetCurrentAbPath(), "/assets"))
-	app.Use(gin.Recovery())
 	app.Use(middleware.ErrorHandler)
 	app.Use(middleware.CORS)
 	app.Use(middleware.Log)
+	app.Use(gin.Recovery())
 	r.RegisterAPI(app)
 	return app
 }
