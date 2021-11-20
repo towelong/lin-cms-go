@@ -6,9 +6,10 @@ import (
 )
 
 type Response struct {
-	Code    int64        `json:"code"`
-	Message interface{}  `json:"message"`
-	Request string       `json:"request"`
+	Code     int64       `json:"code"`
+	Message  interface{} `json:"message"`
+	Request  string      `json:"request"`
+	HttpCode int         `json:"-"`
 }
 
 func NewResponse(code int64) *Response {
@@ -16,6 +17,15 @@ func NewResponse(code int64) *Response {
 		Code:    code,
 		Message: pkg.Code2Message(code),
 		Request: "",
+	}
+}
+
+func New(code int64, httpCode int) *Response {
+	return &Response{
+		Code:     code,
+		Message:  pkg.Code2Message(code),
+		Request:  "",
+		HttpCode: httpCode,
 	}
 }
 

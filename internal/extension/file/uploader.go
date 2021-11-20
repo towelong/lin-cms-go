@@ -35,11 +35,13 @@ func (d DefaultUploader) GetStorePath(fileName string) string {
 }
 
 func (d DefaultUploader) IsValid(files []*multipart.FileHeader) error {
-	if len(files) > viper.GetInt("lin.file.nums") {
+	nums := viper.GetInt("lin.file.nums")
+	if len(files) > nums {
 		return response.NewResponse(10121)
 	}
 	for _, file := range files {
-		if file.Size > viper.GetInt64("lin.file.singleLimit") {
+		singleLimit := viper.GetInt64("lin.file.singleLimit") * 1024 * 1024
+		if file.Size > singleLimit {
 			return response.NewResponse(10110)
 		}
 		extension := "." + strings.Split(file.Filename, ".")[1]

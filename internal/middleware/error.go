@@ -45,5 +45,9 @@ func wrapError(ctx *gin.Context, err validator.ValidationErrors) {
 	} else {
 		r.SetMessage(errString)
 	}
+	httpCode := r.HttpCode
+	if httpCode == 0 {
+		httpCode = http.StatusBadRequest
+	}
 	ctx.JSON(http.StatusBadRequest, r)
 }
