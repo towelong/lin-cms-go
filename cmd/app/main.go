@@ -11,8 +11,8 @@ import (
 
 func main() {
 	validator.InitValidator()
-	log.NewCustomerLogger()
 	configs := config.LoadConfig()
+	log.NewCustomerLogger()
 	// pprof
 	Pprof(fmt.Sprintf(":%d", configs.Server.PprofPort))
 

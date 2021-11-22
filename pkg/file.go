@@ -44,7 +44,6 @@ func GetCurrentAbPathByCaller() string {
 func IsDirExist(path string) bool {
 	s, err := os.Stat(path)
 	if err != nil {
-		log.Println(err)
 		return false
 	}
 	return s.IsDir()

@@ -21,7 +21,11 @@ func ErrorHandler(ctx *gin.Context) {
 			wrapError(ctx, *err)
 		case *response.Response:
 			err.SetRequest(ctx.Request.RequestURI)
-			ctx.JSON(400, err)
+			httpCode := err.HttpCode
+			if httpCode == 0 {
+				httpCode = 400
+			}
+			ctx.JSON(httpCode, err)
 		default:
 			response.ServerFail(ctx)
 		}
