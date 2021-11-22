@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"github.com/towelong/lin-cms-go/internal/pkg/log"
 	"github.com/towelong/lin-cms-go/pkg"
 )
 
@@ -45,12 +44,13 @@ func LoadConfig() Config {
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 	viper.AddConfigPath(path.Join(pkg.GetCurrentAbPath(), "/config"))
-	if viper.GetString("env") == "dev" {
-		log.Logger.Info("当前环境为开发环境")
+	env := viper.GetString("env")
+	if env == "dev" {
+		fmt.Println("当前环境为开发环境")
 		viper.SetConfigName("config.dev")
 	}
-	if viper.GetString("env") == "prod" {
-		log.Logger.Info("当前环境为生产环境")
+	if env == "prod" {
+		fmt.Println("当前环境为生产环境")
 		viper.SetConfigName("config.prod")
 	}
 

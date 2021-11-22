@@ -33,7 +33,9 @@
 .idea
 
 ## resources
+logs
 logs/*
+assets
 assets/*
 
 .DS_Store

@@ -19,7 +19,7 @@ func InitEngine(r router.IRouter) *gin.Engine {
 	app.Use(middleware.ErrorHandler)
 	app.Use(middleware.CORS)
 	app.Use(middleware.Log)
-	app.Use(gin.Recovery())
+	app.Use(middleware.Recovery())
 	r.RegisterAPI(app)
 	return app
 }

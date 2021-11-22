@@ -50,7 +50,9 @@ func (b BookService) DeleteBookById(id int) (err error) {
 	if err != nil {
 		return err
 	}
-	b.DB.Delete(&model.Book{}, book.ID)
+	if err := b.DB.Delete(&model.Book{}, book.ID).Error; err != nil {
+		panic(err)
+	}
 	return nil
 }
 func (b BookService) ChangeBookById(id int, bookDto dto.CreateOrUpdateBookDTO) (err error) {
@@ -64,12 +66,17 @@ func (b BookService) ChangeBookById(id int, bookDto dto.CreateOrUpdateBookDTO) (
 	}
 	var newBook model.Book
 	copier.CopyWithOption(&newBook, &bookDto, copier.Option{IgnoreEmpty: true})
-	b.DB.Model(&bookModel).Updates(newBook)
+	if err := b.DB.Model(&bookModel).Updates(newBook); err != nil {
+		panic(err)
+	}
 	return nil
 }
 
 func (b BookService) CreateBook(bookDto dto.CreateOrUpdateBookDTO) (err error) {
 	var book model.Book
 	copier.CopyWithOption(&book, &bookDto, copier.Option{IgnoreEmpty: true})
-	return b.DB.Omit("create_time, update_time").Create(&book).Error
+	if err := b.DB.Omit("create_time, update_time").Create(&book).Error; err != nil {
+		panic(err)
+	}
+	return nil
 }
